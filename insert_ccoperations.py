@@ -26,7 +26,7 @@ def insert_data_from_csv(file_path):
                         :trans_date_trans_time, :cc_num, :merchant, :category, :amt, :first, :last, :gender, :street, :city, :state, :zip, :lat, :longitude, :city_pop, :job, :dob, :trans_num, :unix_time, :merch_lat, :merch_long, :is_fraud, :merch_zipcode
                     )
                 """)
-                connection.execute(query, {
+                params = {
                     'trans_date_trans_time': row['trans_date_trans_time'],
                     'cc_num': row['cc_num'],
                     'merchant': row['merchant'],
@@ -50,7 +50,10 @@ def insert_data_from_csv(file_path):
                     'merch_long': row['merch_long'],
                     'is_fraud': row['is_fraud'],
                     'merch_zipcode': row['merch_zipcode']
-                })
+                }
+                print(f"Prepared Query: {query}")
+                print(f"Params: {params}")
+                connection.execute(query, params)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
