@@ -52,6 +52,9 @@ def insert_data_from_csv(file_path):
                     'merch_zipcode': row['merch_zipcode']
                 }
 
+                # Escape single quotes in the city_pop field value
+                params['city_pop'] = params['city_pop'].replace("'", "''")
+
                 # Replace placeholders with actual values for debug printing
                 debug_query = str(query).replace(':trans_date_trans_time', f"'{params['trans_date_trans_time']}'")
                 debug_query = debug_query.replace(':cc_num', f"{params['cc_num']}")
