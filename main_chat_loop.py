@@ -19,14 +19,10 @@ db_config = {
 engine = create_engine(f"mysql+pymysql://{db_config['user']}:{db_config['password']}@{db_config['host']}/{db_config['database']}")
 db = SQLDatabase(engine=engine)
 
-
-
-
 # Initialize agents
-mysql_agent = MySQLQueryWriter()
-python_agent = PythonCodeWriter()
-
 model = ChatMistralAI(model="mistral-large-latest")
+mysql_agent = MySQLQueryWriter(db, model)
+python_agent = PythonCodeWriter()
 
 # ===== function to understand user's intent
 def understand_user_intent(user_input):
@@ -51,7 +47,16 @@ def select_agent(intent):
 def execute_agent_task(agent, intent, user_input):
     # Execute the agent's task based on the intent
     if intent == 'select data from database':
-        return agent.info(user_input)
+        state = {
+            "question": user_input,
+            "query": "",
+            "result": "",
+            "answer": ""
+        }
+        state = agent.write_query(state)
+        state = agent.validate_query(state)
+        state = agent.execute_query(state)
+        return state
     elif intent == 'draw graph':
         return agent.info(user_input)
     elif intent == 'cluster' or intent == 'customer portrait':
