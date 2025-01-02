@@ -1,6 +1,7 @@
 import sys
 import csv
 from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
 import pymysql
 
 # Database connection parameters
@@ -82,7 +83,11 @@ def insert_data_from_csv(file_path):
 
                 print(f"Prepared Query: {debug_query}")
                 print(f"Params: {params}")
-                connection.execute(query, params)
+
+                try:
+                    connection.execute(query, params)
+                except SQLAlchemyError as e:
+                    print(f"Error inserting data: {e}")
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
