@@ -12,7 +12,6 @@ class CodeOutput(TypedDict):
     """Generated python code."""
     query: Annotated[str, ..., "Syntactically valid Python code."]
 
-
 class State(TypedDict):
     question: str
     query: str
@@ -86,14 +85,16 @@ Question: {input}
         return state
 
 class PythonCodeWriter:
+    def __init__(self, model: ChatMistralAI):
+        self.model = model
+
     def info(self, user_input):
         return f"PythonCodeWriter: This agent is responsible for writing Python code. User Input: {user_input}"
 
     def write_code(self, state: State):
         """Generate Python code based on the input question. State object as input"""
         system_prompt = '''You are a Python coding assistant that only outputs Python code without any explanations or comments.
-Given an instruction and the suggested Python code, return the correct Python code. Only use the output of your code to answer the question. 
-If it does not seem like you can write code to answer the question, just return "I don't know" as the answer.
+Given an instruction and the suggested Python code, return the correct Python code.
 '''
         code_prompt_template = ChatPromptTemplate([
             ("system", system_prompt),
@@ -104,7 +105,6 @@ If it does not seem like you can write code to answer the question, just return 
             "input": state["question"],
         })
 
-        # Assuming the model is passed to the PythonCodeWriter class similar to MySQLQueryWriter
         structured_llm = self.model.with_structured_output(CodeOutput)
         state['code'] = structured_llm.invoke(prompt)
         return state

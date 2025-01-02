@@ -57,12 +57,17 @@ def execute_agent_task(agent, intent, user_input):
         state = agent.execute_query(state)
         return state
     elif intent == 'draw graph':
+        state = {
+            "question": user_input,
+            "code": "",
+            "result": "",
+            "answer": ""
+        }
         return agent.write_code(state)
     elif intent == 'cluster' or intent == 'customer portrait':
         return agent.info(user_input)
     else:
         raise ValueError("Unknown intent")
-
 
 # ===== Main chat loop =====
 def main_chat_loop(welcome_message="Welcome to Chatbot!"):
@@ -87,7 +92,6 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
 
             results = execute_agent_task(agent, intent['top_label'], user_input)
             print(f"Debug: agent results: {results}")
-
 
 if __name__ == "__main__":
     main_chat_loop()
