@@ -51,7 +51,33 @@ def insert_data_from_csv(file_path):
                     'is_fraud': row['is_fraud'],
                     'merch_zipcode': row['merch_zipcode']
                 }
-                print(f"Prepared Query: {query}")
+
+                # Replace placeholders with actual values for debug printing
+                debug_query = str(query).replace(':trans_date_trans_time', f"'{params['trans_date_trans_time']}'")
+                debug_query = debug_query.replace(':cc_num', f"{params['cc_num']}")
+                debug_query = debug_query.replace(':merchant', f"'{params['merchant']}'")
+                debug_query = debug_query.replace(':category', f"'{params['category']}'")
+                debug_query = debug_query.replace(':amt', f"{params['amt']}")
+                debug_query = debug_query.replace(':first', f"'{params['first']}'")
+                debug_query = debug_query.replace(':last', f"'{params['last']}'")
+                debug_query = debug_query.replace(':gender', f"'{params['gender']}'")
+                debug_query = debug_query.replace(':street', f"'{params['street']}'")
+                debug_query = debug_query.replace(':city', f"'{params['city']}'")
+                debug_query = debug_query.replace(':state', f"'{params['state']}'")
+                debug_query = debug_query.replace(':zip', f"'{params['zip']}'")
+                debug_query = debug_query.replace(':lat', f"{params['lat']}")
+                debug_query = debug_query.replace(':longitude', f"{params['longitude']}")
+                debug_query = debug_query.replace(':city_pop', f"{params['city_pop']}")
+                debug_query = debug_query.replace(':job', f"'{params['job']}'")
+                debug_query = debug_query.replace(':dob', f"'{params['dob']}'")
+                debug_query = debug_query.replace(':trans_num', f"'{params['trans_num']}'")
+                debug_query = debug_query.replace(':unix_time', f"{params['unix_time']}")
+                debug_query = debug_query.replace(':merch_lat', f"{params['merch_lat']}")
+                debug_query = debug_query.replace(':merch_long', f"{params['merch_long']}")
+                debug_query = debug_query.replace(':is_fraud', f"{params['is_fraud']}")
+                debug_query = debug_query.replace(':merch_zipcode', f"'{params['merch_zipcode']}'")
+
+                print(f"Prepared Query: {debug_query}")
                 print(f"Params: {params}")
                 connection.execute(query, params)
 
