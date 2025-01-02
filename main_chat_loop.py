@@ -12,12 +12,12 @@ model = ChatMistralAI(model="mistral-large-latest")
 
 # ===== function to understand user's intent
 def understand_user_intent(user_input):
-    # set possible intent labels 
+    # set possible intent labels
     intent_labels = ["draw graph", "customer portrait", "cluster", "select data from database"]
     user_intent = classify_text(user_input, intent_labels)
     return user_intent
 
-# ===== function to select agent for particular intent  
+# ===== function to select agent for particular intent
 def select_agent(intent):
     # Select the appropriate agent based on the intent
     if intent == 'select data from database':
@@ -29,8 +29,7 @@ def select_agent(intent):
     else:
         raise ValueError("Unknown intent")
 
-
-# ===== function to execute agent on the basis of intent  
+# ===== function to execute agent on the basis of intent
 def execute_agent_task(agent, intent, user_input):
     # Execute the agent's task based on the intent
     if intent == 'select data from database':
@@ -41,8 +40,6 @@ def execute_agent_task(agent, intent, user_input):
         return agent.info(user_input)
     else:
         raise ValueError("Unknown intent")
-
-
 
 def main_chat_loop(welcome_message="Welcome to Chatbot!"):
     """Main function to run the chatbot."""
@@ -61,10 +58,10 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
             print(f"User needs to: {intent['top_label']}")
             print(intent)
 
-            agent = select_agent(intent)
-            print(f"Select agent: {agent}")
-            
-            results = execute_agent_task(agent, intent, user_input)
+            agent = select_agent(intent['top_label'])
+            print(f"Selected agent: {agent}")
+
+            results = execute_agent_task(agent, intent['top_label'], user_input)
 
             print(results)
 
