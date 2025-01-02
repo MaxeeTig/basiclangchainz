@@ -54,7 +54,6 @@ def execute_agent_task(agent, intent, user_input):
             "answer": ""
         }
         state = agent.write_query(state)
-        state = agent.validate_query(state)
         state = agent.execute_query(state)
         return state
     elif intent == 'draw graph':
