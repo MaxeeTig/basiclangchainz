@@ -17,7 +17,7 @@ engine = create_engine(f"mysql+pymysql://{db_config['user']}:{db_config['passwor
 
 def insert_data_from_csv(file_path):
     with open(file_path, mode='r', newline='', encoding='utf-8') as csvfile:
-        csvreader = csv.DictReader(csvfile, delimiter=';')
+        csvreader = csv.DictReader(csvfile, delimiter=',')
         with engine.connect() as connection:
             for row in csvreader:
                 query = text("""
@@ -54,7 +54,7 @@ def insert_data_from_csv(file_path):
                 }
 
                 # Escape single quotes in the city_pop field value
-                params['city_pop'] = params['city_pop'].replace("'", "''")
+                #params['city_pop'] = params['city_pop'].replace("'", "''")
 
                 # Replace placeholders with actual values for debug printing
                 debug_query = str(query).replace(':trans_date_trans_time', f"'{params['trans_date_trans_time']}'")
@@ -90,10 +90,11 @@ def insert_data_from_csv(file_path):
                     print(f"Error inserting data: {e}")
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Usage: python insert_ccoperations.py <csv_file_path>")
-        sys.exit(1)
+    #if len(sys.argv) != 2:
+    #    print("Usage: python insert_ccoperations.py <csv_file_path>")
+    #    sys.exit(1)
 
-    csv_file_path = sys.argv[1]
+    #csv_file_path = sys.argv[1]
+    csv_file_path = "1.csv" 
     insert_data_from_csv(csv_file_path)
     print("Data inserted successfully.")
