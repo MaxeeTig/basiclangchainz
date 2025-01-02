@@ -17,8 +17,6 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
         if user_input.lower() == 'exit':
             print("Exiting the chatbot. Goodbye!")
             break
-
-
         else:
             print(f"Getting extra information from local data for query {user_input}...")
             intent_labels = ["draw graph", "customer portrait", "cluster", "select data from database"]
@@ -28,8 +26,10 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
 
             if user_intent['top_label'] == 'draw graph':
                 print("Draw graph")
-
             elif user_intent['top_label'] == 'select data from database':
+                print("Select data from database")
+            else:
+                print("Intent not recognized")
 
 if __name__ == "__main__":
     main_chat_loop()
