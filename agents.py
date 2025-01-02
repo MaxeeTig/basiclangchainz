@@ -8,6 +8,11 @@ class QueryOutput(TypedDict):
     """Generated SQL query."""
     query: Annotated[str, ..., "Syntactically valid SQL query."]
 
+class CodeOutput(TypedDict):
+    """Generated python code."""
+    query: Annotated[str, ..., "Syntactically valid Python code."]
+
+
 class State(TypedDict):
     question: str
     query: str
@@ -87,7 +92,8 @@ class PythonCodeWriter:
     def write_code(self, state: State):
         """Generate Python code based on the input question. State object as input"""
         system_prompt = '''You are a Python coding assistant that only outputs Python code without any explanations or comments.
-Given an instruction and the suggested Python code, return the correct Python code.
+Given an instruction and the suggested Python code, return the correct Python code. Only use the output of your code to answer the question. 
+If it does not seem like you can write code to answer the question, just return "I don't know" as the answer.
 '''
         code_prompt_template = ChatPromptTemplate([
             ("system", system_prompt),
