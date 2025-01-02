@@ -15,7 +15,7 @@ CREATE TABLE ccoperations (
     state CHAR(2),
     zip VARCHAR(10),
     lat DECIMAL(9, 6),
-    long DECIMAL(9, 6),
+    longitude DECIMAL(9, 6),
     city_pop INT,
     job VARCHAR(255),
     dob DATE,
