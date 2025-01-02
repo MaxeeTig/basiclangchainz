@@ -1,4 +1,4 @@
-use cctransreview
+use cctransreview;
 CREATE TABLE ccoperations (
     id INT AUTO_INCREMENT PRIMARY KEY,
     trans_date_trans_time DATETIME,
