@@ -22,7 +22,7 @@ db = SQLDatabase(engine=engine)
 # Initialize agents
 model = ChatMistralAI(model="mistral-large-latest")
 mysql_agent = MySQLQueryWriter(db, model)
-python_agent = PythonCodeWriter()
+python_agent = PythonCodeWriter(model)
 
 # ===== function to understand user's intent
 def understand_user_intent(user_input):
