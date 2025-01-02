@@ -1,8 +1,26 @@
 from user_intent import classify_text
+from langchain_community.utilities import SQLDatabase
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_mistralai import ChatMistralAI
+from sqlalchemy import create_engine
 
+# our file agents.py
 from agents import MySQLQueryWriter, PythonCodeWriter  # Hypothetical agents
+
+# Database connection parameters
+db_config = {
+    'user': 'cctrxn',
+    'password': 'cctrxnpwd',
+    'host': 'localhost',
+    'database': 'cctransreview'
+}
+
+# Create the SQLAlchemy engine
+engine = create_engine(f"mysql+pymysql://{db_config['user']}:{db_config['password']}@{db_config['host']}/{db_config['database']}")
+db = SQLDatabase(engine=engine)
+
+
+
 
 # Initialize agents
 mysql_agent = MySQLQueryWriter()
@@ -51,7 +69,7 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
             print("Exiting the chatbot. Goodbye!")
             break
         else:
-            print(f"Getting extra information from local data for query {user_input}...")
+            print(f"Getting extra information from local data for query: '{user_input}'...")
 
             # call function to define user's intent
             intent = understand_user_intent(user_input)
