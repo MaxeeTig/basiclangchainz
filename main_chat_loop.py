@@ -3,9 +3,10 @@ from langchain_community.utilities import SQLDatabase
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_mistralai import ChatMistralAI
 from sqlalchemy import create_engine
+import pandas as pd
 
 # our file agents.py
-from agents import MySQLQueryWriter, PythonCodeWriter  # Hypothetical agents
+from agents import MySQLQueryWriter, PythonCodeWriter  # My agents 
 
 # Database connection parameters
 db_config = {
@@ -18,6 +19,7 @@ db_config = {
 # Create the SQLAlchemy engine
 engine = create_engine(f"mysql+pymysql://{db_config['user']}:{db_config['password']}@{db_config['host']}/{db_config['database']}")
 db = SQLDatabase(engine=engine)
+
 
 # Initialize agents
 model = ChatMistralAI(model="mistral-large-latest")
@@ -69,10 +71,19 @@ def execute_agent_task(agent, intent, user_input):
     else:
         raise ValueError("Unknown intent")
 
+# ===== Function to pre-fetch data. Data defined by LLM on the basis of user intent 
+def pre_fetch_data(intent, user_input):
+    # Generate SQL query dynamically based on the intent and user input
+    sql_query = mysql_agent.write_query(intent, user_input)
+    # Fetch data from the database
+    df = pd.read_sql(sql_query, db_connection)
+    return df
+
 # ===== Main chat loop =====
 def main_chat_loop(welcome_message="Welcome to Chatbot!"):
     """Main function to run the chatbot."""
     print(welcome_message)
+
     while True:
         user_input = input("Please enter your query (type 'exit' to quit): ")
 
@@ -89,6 +100,12 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
 
             agent = select_agent(intent['top_label'])
             print(f"Selected agent: {agent}")
+
+            # Pre-fetch data if the intent requires it
+            if intent in ['draw graph', 'cluster']:
+                df = pre_fetch_data(intent, user_input)
+            else:
+                df = None
 
             results = execute_agent_task(agent, intent['top_label'], user_input)
             print(f"Debug: agent results: {results}")
