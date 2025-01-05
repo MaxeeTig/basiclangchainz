@@ -64,7 +64,8 @@ def execute_agent_task(agent, intent, user_input):
             "result": "",
             "answer": ""
         }
-        return agent.write_code(state)
+        state = agent.write_query(state)
+        return state['query']['query']  # Return the SQL query
     elif intent == 'cluster' or intent == 'customer portrait':
         return agent.info(user_input)
     else:
@@ -73,7 +74,7 @@ def execute_agent_task(agent, intent, user_input):
 # ===== Function to pre-fetch data. Data defined by LLM on the basis of user intent
 def pre_fetch_data(intent, user_input):
     # Generate SQL query dynamically based on the intent and user input
-    sql_query = mysql_agent.write_query(intent, user_input)
+    sql_query =  execute_agent_task(mysql_agent, intent, user_input)
     # Fetch data from the database
     df = pd.read_sql(sql_query, engine)
     return df
@@ -101,8 +102,8 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
             print(f"Selected agent: {agent}")
 
             # Pre-fetch data if the intent requires it
-            if intent in ['draw graph', 'cluster']:
-                df = pre_fetch_data(intent, user_input)
+            if intent['top_label'] in ['draw graph', 'cluster']:
+                df = pre_fetch_data(intent['top_label'], user_input)
             else:
                 df = None
 
