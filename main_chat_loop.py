@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 import pandas as pd
 
 # our file agents.py
-from agents import MySQLQueryWriter, PythonCodeWriter  # My agents 
+from agents import MySQLQueryWriter, PythonCodeWriter  # My agents
 
 # Database connection parameters
 db_config = {
@@ -19,7 +19,6 @@ db_config = {
 # Create the SQLAlchemy engine
 engine = create_engine(f"mysql+pymysql://{db_config['user']}:{db_config['password']}@{db_config['host']}/{db_config['database']}")
 db = SQLDatabase(engine=engine)
-
 
 # Initialize agents
 model = ChatMistralAI(model="mistral-large-latest")
@@ -71,12 +70,12 @@ def execute_agent_task(agent, intent, user_input):
     else:
         raise ValueError("Unknown intent")
 
-# ===== Function to pre-fetch data. Data defined by LLM on the basis of user intent 
+# ===== Function to pre-fetch data. Data defined by LLM on the basis of user intent
 def pre_fetch_data(intent, user_input):
     # Generate SQL query dynamically based on the intent and user input
     sql_query = mysql_agent.write_query(intent, user_input)
     # Fetch data from the database
-    df = pd.read_sql(sql_query, db_connection)
+    df = pd.read_sql(sql_query, engine)
     return df
 
 # ===== Main chat loop =====
