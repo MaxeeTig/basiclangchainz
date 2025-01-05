@@ -75,6 +75,10 @@ def execute_agent_task(agent, intent, user_input):
 def pre_fetch_data(intent, user_input):
     # Generate SQL query dynamically based on the intent and user input
     sql_query =  execute_agent_task(mysql_agent, intent, user_input)
+
+    # Preprocess the SQL query to replace DATE_FORMAT with STR_TO_DATE
+    sql_query = sql_query.replace("DATE_FORMAT", "STR_TO_DATE")
+
     # Fetch data from the database
     df = pd.read_sql(sql_query, engine)
     return df
