@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 import pandas as pd
 
 # our file agents.py
-from agents import MySQLQueryWriter, PythonCodeWriter  # My agents
+from agents import MySQLQueryWriter, PythonCodeWriterGraph, PythonCodeWriterCluster  # My agents
 
 # Database connection parameters
 db_config = {
@@ -23,7 +23,8 @@ db = SQLDatabase(engine=engine)
 # Initialize agents
 model = ChatMistralAI(model="mistral-large-latest")
 mysql_agent = MySQLQueryWriter(db, model)
-python_agent = PythonCodeWriter(model)
+python_agent_graph = PythonCodeWriterGraph(model)
+python_agent_cluster = PythonCodeWriterCluster(model)
 
 # ===== function to understand user's intent
 def understand_user_intent(user_input):
@@ -38,9 +39,11 @@ def select_agent(intent):
     if intent == 'select data from database':
         return mysql_agent
     elif intent == 'draw graph':
-        return python_agent
-    elif intent == 'cluster' or intent == 'customer portrait':
-        return python_agent  # Assuming the same agent for clustering
+        return python_agent_graph
+    elif intent == 'cluster':
+        return python_agent_cluster
+    elif intent == 'customer portrait':
+        return python_agent_cluster  # Assuming the same agent for clustering
     else:
         raise ValueError("Unknown intent")
 
@@ -64,8 +67,8 @@ def execute_agent_task(agent, intent, user_input):
             "result": "",
             "answer": ""
         }
-        state = agent.write_query(state)
-        return state['query']['query']  # Return the SQL query
+        state = agent.write_code(state)
+        return state['code']['query']  # Return the Python code
     elif intent == 'cluster' or intent == 'customer portrait':
         return agent.info(user_input)
     else:
@@ -79,8 +82,8 @@ def pre_fetch_data(intent, user_input):
     sql_query = '''
  SELECT trans_date_trans_time, cc_num, merchant, category, amt, first, last, gender, street, city,
     state, zip, lat, longitude, city_pop, job, dob, trans_num, unix_time, merch_lat, merch_long, is_fraud,
-    merch_zipcode 
- FROM 
+    merch_zipcode
+ FROM
  ccoperations
  '''
     print("Debug: pre-fetching data to dataframe... ")
@@ -117,8 +120,7 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
             else:
                 df = None
 
-
-            print(f"Data fetched to df:"{df.head()})
+            print(f"Data fetched to df:{df.head()}")
 
             results = execute_agent_task(agent, intent['top_label'], user_input)
             print(f"Debug: agent results: {results}")

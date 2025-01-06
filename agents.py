@@ -84,19 +84,19 @@ Question: {input}
         state['result'] = execute_query_tool.invoke(state["query"])
         return state
 
-class PythonCodeWriter:
+class PythonCodeWriterGraph:
     def __init__(self, model: ChatMistralAI):
         self.model = model
 
     def info(self, user_input):
-        return f"PythonCodeWriter: This agent is responsible for writing Python code. User Input: {user_input}"
+        return f"PythonCodeWriterGraph: This agent is responsible for writing Python code. User Input: {user_input}"
 
     def write_code(self, state: State):
         """Generate Python code based on the input question. State object as input"""
-        
+
         system_prompt = """
-You are a Python code writing agent specialized in creating graphs using Matplotlib. 
-Your task is to generate Python code that visualizes data from a Pandas DataFrame. 
+You are a Python code writing agent specialized in creating graphs using Matplotlib.
+Your task is to generate Python code that visualizes data from a Pandas DataFrame.
 The data is pre-fetched into a DataFrame named 'df'. You should use Matplotlib to create the graphs.
 
 ### Instructions:
@@ -137,7 +137,72 @@ plt.show()
 Generate the Python code based on the provided parameters.
 """
 
+        code_prompt_template = ChatPromptTemplate([
+            ("system", system_prompt),
+            ("user", ""),
+        ])
 
+        prompt = code_prompt_template.invoke({
+            "input": state["question"],
+        })
+
+        structured_llm = self.model.with_structured_output(CodeOutput)
+        state['code'] = structured_llm.invoke(prompt)
+        return state
+
+class PythonCodeWriterCluster:
+    def __init__(self, model: ChatMistralAI):
+        self.model = model
+
+    def info(self, user_input):
+        return f"PythonCodeWriterCluster: This agent is responsible for writing Python code. User Input: {user_input}"
+
+    def write_code(self, state: State):
+        """Generate Python code based on the input question. State object as input"""
+
+        system_prompt = """
+You are a Python code writing agent specialized in creating clustering analysis using libraries like Scikit-learn.
+Your task is to generate Python code that performs clustering analysis on data from a Pandas DataFrame.
+The data is pre-fetched into a DataFrame named 'df'. You should use Scikit-learn to create the clustering analysis.
+
+### Instructions:
+1. **DataFrame**: Assume the data is already loaded into a Pandas DataFrame named 'df'.
+2. **Scikit-learn**: Use Scikit-learn to create the clustering analysis.
+3. **Parameters**: Use the following parameters from the operations table to customize the clustering:
+   - `features`: The columns to use as features for clustering.
+   - `n_clusters`: The number of clusters to create.
+   - `algorithm`: The clustering algorithm to use (e.g., 'kmeans', 'dbscan', 'hierarchical').
+   - `title`: The title of the clustering analysis.
+4. **Output**: Generate the Python code as a string and return it.
+
+### Example:
+Given the parameters:
+- `features`: ['feature1', 'feature2']
+- `n_clusters`: 3
+- `algorithm`: 'kmeans'
+- `title`: 'Customer Segmentation'
+
+The generated code should look like this:
+```python
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+# Assuming df is already defined and contains the data
+features = df[['feature1', 'feature2']]
+kmeans = KMeans(n_clusters=3)
+kmeans.fit(features)
+labels = kmeans.labels_
+
+plt.figure(figsize=(10, 6))
+plt.scatter(features['feature1'], features['feature2'], c=labels, cmap='viridis')
+plt.title('Customer Segmentation')
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.show()
+```
+### Task:
+Generate the Python code based on the provided parameters.
+"""
 
         code_prompt_template = ChatPromptTemplate([
             ("system", system_prompt),
