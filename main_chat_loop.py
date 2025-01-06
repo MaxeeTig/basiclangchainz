@@ -48,7 +48,7 @@ def select_agent(intent):
         raise ValueError("Unknown intent")
 
 # ===== function to execute agent on the basis of intent
-def execute_agent_task(agent, intent, user_input):
+def execute_agent_task(agent, intent, user_input, df=None):
     # Execute the agent's task based on the intent
     if intent == 'select data from database':
         state = {
@@ -67,8 +67,8 @@ def execute_agent_task(agent, intent, user_input):
             "result": "",
             "answer": ""
         }
-        state = agent.write_code(state)
-        return state['code']['query']  # Return the Python code
+        state = agent.write_code(state, df)
+        return state['code']
     elif intent == 'cluster' or intent == 'customer portrait':
         return agent.info(user_input)
     else:
@@ -122,7 +122,7 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
 
             print(f"Data fetched to df:{df.head()}")
 
-            results = execute_agent_task(agent, intent['top_label'], user_input)
+            results = execute_agent_task(agent, intent['top_label'], user_input, df)
             print(f"Debug: agent results: {results}")
 
             # Execute the generated Python code if the intent is 'draw graph'

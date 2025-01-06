@@ -91,8 +91,11 @@ class PythonCodeWriterGraph:
     def info(self, user_input):
         return f"PythonCodeWriterGraph: This agent is responsible for writing Python code. User Input: {user_input}"
 
-    def write_code(self, state: State):
+    def write_code(self, state: State, df):
         """Generate Python code based on the input question. State object as input"""
+
+        # Get the columns of the DataFrame
+        columns = df.columns.tolist()
 
         system_prompt = """
 You are a Python code writing agent specialized in creating graphs using Matplotlib.
@@ -110,6 +113,9 @@ The data is pre-fetched into a DataFrame named 'df'. You should use Matplotlib t
    - `xlabel`: The label for the x-axis.
    - `ylabel`: The label for the y-axis.
 4. **Output**: Generate the Python code as a string and return it.
+
+### DataFrame Columns:
+{columns}
 
 ### Example:
 Given the parameters:
@@ -143,6 +149,7 @@ Generate the Python code based on the provided parameters.
         ])
 
         prompt = code_prompt_template.invoke({
+            "columns": columns,
             "input": state["question"],
         })
 
