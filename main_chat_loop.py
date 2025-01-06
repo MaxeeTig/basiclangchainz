@@ -74,10 +74,16 @@ def execute_agent_task(agent, intent, user_input):
 # ===== Function to pre-fetch data. Data defined by LLM on the basis of user intent
 def pre_fetch_data(intent, user_input):
     # Generate SQL query dynamically based on the intent and user input
-    sql_query =  execute_agent_task(mysql_agent, intent, user_input)
-
-    # Preprocess the SQL query to replace DATE_FORMAT with STR_TO_DATE
-    sql_query = sql_query.replace("DATE_FORMAT", "STR_TO_DATE")
+#   reserved call to llm
+#    sql_query =  execute_agent_task(mysql_agent, intent, user_input)
+    sql_query = '''
+ SELECT trans_date_trans_time, cc_num, merchant, category, amt, first, last, gender, street, city,
+    state, zip, lat, longitude, city_pop, job, dob, trans_num, unix_time, merch_lat, merch_long, is_fraud,
+    merch_zipcode 
+ FROM 
+ ccoperations
+ '''
+    print("Debug: pre-fetching data to dataframe... ")
 
     # Fetch data from the database
     df = pd.read_sql(sql_query, engine)
@@ -110,6 +116,9 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
                 df = pre_fetch_data(intent['top_label'], user_input)
             else:
                 df = None
+
+
+            print(f"Data fetched to df:"{df.head()})
 
             results = execute_agent_task(agent, intent['top_label'], user_input)
             print(f"Debug: agent results: {results}")

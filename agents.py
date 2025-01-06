@@ -93,9 +93,52 @@ class PythonCodeWriter:
 
     def write_code(self, state: State):
         """Generate Python code based on the input question. State object as input"""
-        system_prompt = '''You are a Python coding assistant that only outputs Python code without any explanations or comments.
-Given an instruction and the suggested Python code, return the correct Python code.
-'''
+        
+        system_prompt = """
+You are a Python code writing agent specialized in creating graphs using Matplotlib. 
+Your task is to generate Python code that visualizes data from a Pandas DataFrame. 
+The data is pre-fetched into a DataFrame named 'df'. You should use Matplotlib to create the graphs.
+
+### Instructions:
+1. **DataFrame**: Assume the data is already loaded into a Pandas DataFrame named 'df'.
+2. **Matplotlib**: Use Matplotlib to create the graphs.
+3. **Parameters**: Use the following parameters from the operations table to customize the graph:
+   - `x_column`: The column name to use for the x-axis.
+   - `y_column`: The column name to use for the y-axis.
+   - `graph_type`: The type of graph to create (e.g., 'line', 'bar', 'scatter', 'histogram').
+   - `title`: The title of the graph.
+   - `xlabel`: The label for the x-axis.
+   - `ylabel`: The label for the y-axis.
+4. **Output**: Generate the Python code as a string and return it.
+
+### Example:
+Given the parameters:
+- `x_column`: 'date'
+- `y_column`: 'amount'
+- `graph_type`: 'line'
+- `title`: 'Transaction Amount Over Time'
+- `xlabel`: 'Date'
+- `ylabel`: 'Amount'
+
+The generated code should look like this:
+```python
+import matplotlib.pyplot as plt
+
+# Assuming df is already defined and contains the data
+plt.figure(figsize=(10, 6))
+plt.plot(df['date'], df['amount'], marker='o')
+plt.title('Transaction Amount Over Time')
+plt.xlabel('Date')
+plt.ylabel('Amount')
+plt.grid(True)
+plt.show()
+```
+### Task:
+Generate the Python code based on the provided parameters.
+"""
+
+
+
         code_prompt_template = ChatPromptTemplate([
             ("system", system_prompt),
             ("user", ""),
