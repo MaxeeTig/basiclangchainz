@@ -100,7 +100,8 @@ class PythonCodeWriterGraph:
         system_prompt = """
 You are a Python code writing agent specialized in creating graphs using Matplotlib.
 Your task is to select required columns from dataframe and generate Python code that visualizes data from a Pandas DataFrame.
-Read user's request carefully and define: graph type need to draw, parameters for required graph type.
+This is user request {input}. 
+Read user request carefully and define: graph type need to draw, parameters for required graph type.
 Assume the data is pre-fetched into a DataFrame named 'df'. 
 Do not create sample dataframe. 
 You should use Matplotlib to create the graphs.

@@ -117,10 +117,11 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
             # Pre-fetch data if the intent requires it
             if intent['top_label'] in ['draw graph', 'cluster']:
                 df = pre_fetch_data(intent['top_label'], user_input)
+                print(f"Data fetched to df:{df.head()}")
             else:
                 df = None
 
-            print(f"Data fetched to df:{df.head()}")
+            
 
             results = execute_agent_task(agent, intent['top_label'], user_input, df)
             print(f"Debug: agent results: {results}")
