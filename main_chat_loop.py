@@ -125,5 +125,13 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
             results = execute_agent_task(agent, intent['top_label'], user_input)
             print(f"Debug: agent results: {results}")
 
+            # Execute the generated Python code if the intent is 'draw graph'
+            if intent['top_label'] == 'draw graph':
+                try:
+                    exec(results)
+                    print("Graph generated successfully.")
+                except Exception as e:
+                    print(f"Error executing the generated code: {e}")
+
 if __name__ == "__main__":
     main_chat_loop()
