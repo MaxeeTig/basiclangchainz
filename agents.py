@@ -99,11 +99,15 @@ class PythonCodeWriterGraph:
 
         system_prompt = """
 You are a Python code writing agent specialized in creating graphs using Matplotlib.
-Your task is to generate Python code that visualizes data from a Pandas DataFrame.
-The data is pre-fetched into a DataFrame named 'df'. You should use Matplotlib to create the graphs.
+Your task is to select required columns from dataframe and generate Python code that visualizes data from a Pandas DataFrame.
+Read user's request carefully and define: graph type need to draw, parameters for required graph type.
+Assume the data is pre-fetched into a DataFrame named 'df'. 
+Do not create sample dataframe. 
+You should use Matplotlib to create the graphs.
+  
 
 ### Instructions:
-1. **DataFrame**: Assume the data is already loaded into a Pandas DataFrame named 'df'.
+1. **DataFrame**: Assume the data is already loaded into a Pandas DataFrame named 'df'. Select required columns from DataFrame. No sample dataframe required.
 2. **Matplotlib**: Use Matplotlib to create the graphs.
 3. **Parameters**: Use the following parameters from the operations table to customize the graph:
    - `x_column`: The column name to use for the x-axis.
@@ -117,28 +121,7 @@ The data is pre-fetched into a DataFrame named 'df'. You should use Matplotlib t
 ### DataFrame Columns:
 {columns}
 
-### Example:
-Given the parameters:
-- `x_column`: 'date'
-- `y_column`: 'amount'
-- `graph_type`: 'line'
-- `title`: 'Transaction Amount Over Time'
-- `xlabel`: 'Date'
-- `ylabel`: 'Amount'
 
-The generated code should look like this:
-```python
-import matplotlib.pyplot as plt
-
-# Assuming df is already defined and contains the data
-plt.figure(figsize=(10, 6))
-plt.plot(df['date'], df['amount'], marker='o')
-plt.title('Transaction Amount Over Time')
-plt.xlabel('Date')
-plt.ylabel('Amount')
-plt.grid(True)
-plt.show()
-```
 ### Task:
 Generate the Python code based on the provided parameters.
 """

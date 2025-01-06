@@ -66,11 +66,10 @@ def insert_data_from_csv(file_path):
                 transaction.commit()  # Commit the transaction
 
 if __name__ == '__main__':
-    #if len(sys.argv) != 2:
-    #    print("Usage: python insert_ccoperations.py <csv_file_path>")
-    #    sys.exit(1)
+    if len(sys.argv) != 2:
+        print("Usage: python insert_ccoperations.py <csv_file_path>")
+        sys.exit(1)
 
-    #csv_file_path = sys.argv[1]
-    csv_file_path = "1.csv"
+    csv_file_path = sys.argv[1]
     insert_data_from_csv(csv_file_path)
     print("Data inserted successfully.")
