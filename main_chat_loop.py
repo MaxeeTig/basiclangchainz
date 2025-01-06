@@ -70,7 +70,14 @@ def execute_agent_task(agent, intent, user_input, df=None):
         state = agent.write_code(state, df)
         return state['code']['query']
     elif intent == 'cluster' or intent == 'customer portrait':
-        return agent.info(user_input)
+        state = {
+            "question": user_input,
+            "code": "",
+            "result": "",
+            "answer": ""
+        }
+        state = agent.write_code(state, df)
+        return state['code']['query']
     else:
         raise ValueError("Unknown intent")
 
@@ -133,6 +140,15 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
                     print("Graph generated successfully.")
                 except Exception as e:
                     print(f"Error executing the generated code: {e}")
+
+            # Execute the generated Python code if the intent is 'draw graph'
+            if intent['top_label'] == 'cluster':
+                try:
+                    exec(results)
+                    print("Graph generated successfully.")
+                except Exception as e:
+                    print(f"Error executing the generated code: {e}")
+
 
 if __name__ == "__main__":
     main_chat_loop()

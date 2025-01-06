@@ -148,13 +148,22 @@ class PythonCodeWriterCluster:
     def info(self, user_input):
         return f"PythonCodeWriterCluster: This agent is responsible for writing Python code. User Input: {user_input}"
 
-    def write_code(self, state: State):
+    def write_code(self, state: State, df):
         """Generate Python code based on the input question. State object as input"""
+        
+        # Get the columns of the DataFrame
+        columns = df.columns.tolist()
+        # Get the first few rows of the DataFrame as sample data
+        sample_data = df.head().to_dict(orient='split')
 
         system_prompt = """
 You are a Python code writing agent specialized in creating clustering analysis using libraries like Scikit-learn.
 Your task is to generate Python code that performs clustering analysis on data from a Pandas DataFrame.
+This is user request {input}. 
 The data is pre-fetched into a DataFrame named 'df'. You should use Scikit-learn to create the clustering analysis.
+Analyze provided sample data, drop from 'df' useless features, select appropriate features to build clusters. 
+Do not create sample data dataframe, use for cluster analysis initial 'df' to create from it cleaned dataframe like:  
+df_cleaned = df.drop(columns=['column1','column2']) where column1, column2, columnN are useless features. 
 
 ### Instructions:
 1. **DataFrame**: Assume the data is already loaded into a Pandas DataFrame named 'df'.
@@ -165,6 +174,12 @@ The data is pre-fetched into a DataFrame named 'df'. You should use Scikit-learn
    - `algorithm`: The clustering algorithm to use (e.g., 'kmeans', 'dbscan', 'hierarchical').
    - `title`: The title of the clustering analysis.
 4. **Output**: Generate the Python code as a string and return it.
+
+### DataFrame Columns:
+{columns}
+
+### Sample Data:
+{sample_data}
 
 ### Example:
 Given the parameters:
@@ -184,6 +199,7 @@ kmeans = KMeans(n_clusters=3)
 kmeans.fit(features)
 labels = kmeans.labels_
 
+
 plt.figure(figsize=(10, 6))
 plt.scatter(features['feature1'], features['feature2'], c=labels, cmap='viridis')
 plt.title('Customer Segmentation')
@@ -201,6 +217,8 @@ Generate the Python code based on the provided parameters.
         ])
 
         prompt = code_prompt_template.invoke({
+            "columns": columns,
+            "sample_data": sample_data,
             "input": state["question"],
         })
 
