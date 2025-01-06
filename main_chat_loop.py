@@ -68,7 +68,7 @@ def execute_agent_task(agent, intent, user_input, df=None):
             "answer": ""
         }
         state = agent.write_code(state, df)
-        return state['code']
+        return state['code']['query']
     elif intent == 'cluster' or intent == 'customer portrait':
         return agent.info(user_input)
     else:
