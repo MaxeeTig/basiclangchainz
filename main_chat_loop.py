@@ -37,7 +37,7 @@ def understand_user_intent(user_input):
 
     intent = user_input_clarified['intent']
     # set possible intent labels
-    intent_labels = ["draw graph", "customer portrait or profile", "cluster", "select data from database"]
+    intent_labels = ["draw graph", "customer portrait or profile", "cluster", "select data from database", "unknown"]
     user_intent = classify_text(intent, intent_labels)
     return user_intent
 
@@ -53,7 +53,7 @@ def select_agent(intent):
     elif intent == 'customer portrait':
         return python_agent_cluster  # Assuming the same agent for clustering
     else:
-        raise ValueError("Unknown intent")
+        return None 
 
 # ===== function to execute agent on the basis of intent
 def execute_agent_task(agent, intent, user_input, df=None):
@@ -148,12 +148,9 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
                     print(f"Error executing the generated code: {e}")
 
             # Execute the generated Python code if the intent is 'draw graph'
-            if intent['top_label'] == 'cluster':
-                try:
-                    exec(results)
-                    print("Graph generated successfully.")
-                except Exception as e:
-                    print(f"Error executing the generated code: {e}")
+            if intent['top_label'] == 'unknown':
+                print("Sorry, I do not understand your question.")
+                                
 
 if __name__ == "__main__":
     main_chat_loop()
