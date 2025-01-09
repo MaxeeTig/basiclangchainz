@@ -29,9 +29,11 @@ python_agent_cluster = PythonCodeWriterCluster(model)
 
 # ===== function to understand user's intent
 def understand_user_intent(user_input):
+    import ast
     # call LLM to clarify intent
-    user_input_clarified = clarify_intent(user_input)
-    print(type(user_input_clarified))
+    user_input_clarified_str = clarify_intent(user_input)
+
+    user_input_clarified = ast.literal_eval(user_input_clarified_str)
 
     intent = user_input_clarified['intent']
     # set possible intent labels
