@@ -1,4 +1,5 @@
 from user_intent import classify_text
+from user_intent import clarify_intent
 from langchain_community.utilities import SQLDatabase
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_mistralai import ChatMistralAI
@@ -28,9 +29,15 @@ python_agent_cluster = PythonCodeWriterCluster(model)
 
 # ===== function to understand user's intent
 def understand_user_intent(user_input):
+    # call LLM to clarify intent 
+    user_input_clarified = clarify_intent(user_input)
+    print(type(user_input_clarified))
+
+
+    intent = user_input_clarified['intent']
     # set possible intent labels
-    intent_labels = ["draw graph", "customer portrait", "cluster", "select data from database"]
-    user_intent = classify_text(user_input, intent_labels)
+    intent_labels = ["draw graph", "customer portrait or profile", "cluster", "select data from database"]
+    user_intent = classify_text(intent, intent_labels)
     return user_intent
 
 # ===== function to select agent for particular intent
