@@ -29,10 +29,9 @@ python_agent_cluster = PythonCodeWriterCluster(model)
 
 # ===== function to understand user's intent
 def understand_user_intent(user_input):
-    # call LLM to clarify intent 
+    # call LLM to clarify intent
     user_input_clarified = clarify_intent(user_input)
     print(type(user_input_clarified))
-
 
     intent = user_input_clarified['intent']
     # set possible intent labels
@@ -135,8 +134,6 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
             else:
                 df = None
 
-            
-
             results = execute_agent_task(agent, intent['top_label'], user_input, df)
             print(f"Debug: agent results: {results}")
 
@@ -155,7 +152,6 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
                     print("Graph generated successfully.")
                 except Exception as e:
                     print(f"Error executing the generated code: {e}")
-
 
 if __name__ == "__main__":
     main_chat_loop()
