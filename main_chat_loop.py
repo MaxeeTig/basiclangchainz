@@ -29,15 +29,16 @@ python_agent_cluster = PythonCodeWriterCluster(model)
 
 # ===== function to understand user's intent
 def understand_user_intent(user_input):
-    import ast
     # call LLM to clarify intent
-    user_input_clarified_str = clarify_intent(user_input)
-
-    user_input_clarified = ast.literal_eval(user_input_clarified_str)
-
-    intent = user_input_clarified['intent']
+    user_input_clarified = clarify_intent(user_input)
+    # structured output from LLM - dictionary     
+    intent = user_input_clarified['query']
+    
+    # glue user input with clarified intent and pass to classification 
+    intent = f"{user_input} {intent}" 
+    
     # set possible intent labels
-    intent_labels = ["draw graph", "customer portrait or profile", "cluster", "select data from database", "unknown"]
+    intent_labels = ["draw graph", "customer portrait or profile", "cluster analysis", "select data from database", "unknown"]
     user_intent = classify_text(intent, intent_labels)
     return user_intent
 
@@ -48,7 +49,7 @@ def select_agent(intent):
         return mysql_agent
     elif intent == 'draw graph':
         return python_agent_graph
-    elif intent == 'cluster':
+    elif intent == 'cluster analysis':
         return python_agent_cluster
     elif intent == 'customer portrait':
         return python_agent_cluster  # Assuming the same agent for clustering
@@ -77,7 +78,7 @@ def execute_agent_task(agent, intent, user_input, df=None):
         }
         state = agent.write_code(state, df)
         return state['code']['query']
-    elif intent == 'cluster' or intent == 'customer portrait':
+    elif intent == 'cluster analysis' or intent == 'customer portrait':
         state = {
             "question": user_input,
             "code": "",
@@ -134,7 +135,7 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
             print(f"Selected agent: {agent}")
 
             # Pre-fetch data if the intent requires it
-            if intent['top_label'] in ['draw graph', 'cluster']:
+            if intent['top_label'] in ['draw graph', 'cluster analysis']:
                 df = pre_fetch_data(intent['top_label'], user_input)
                 print(f"Data fetched to df:{df.head()}")
             else:
