@@ -97,12 +97,16 @@ def pre_fetch_data(intent, user_input):
 #   reserved call to llm
 #    sql_query =  execute_agent_task(mysql_agent, intent, user_input)
     sql_query = '''
- SELECT trans_date_trans_time, cc_num, merchant, category, amt, first, last, gender, street, city,
-    state, zip, lat, longitude, city_pop, job, dob, trans_num, unix_time, merch_lat, merch_long, is_fraud,
-    merch_zipcode
- FROM
- ccoperations
- '''
+    SELECT oper_date, issuer_card_id, mcc, merchant_city, merchant_country, oper_amount_amount_value, oper_amount_currency, oper_type 
+    FROM operations 
+    WHERE is_reversal = 0 
+    AND oper_type IS NOT NULL
+    AND mcc <> ''
+    AND merchant_country REGEXP '^[0-9]+$'
+    AND merchant_country <> '0'
+    AND oper_amount_amount_value > 1.00
+    AND oper_amount_amount_value < 1000000000.00
+    '''
     print("Debug: pre-fetching data to dataframe... ")
 
     # Fetch data from the database
