@@ -105,7 +105,17 @@ class PythonCodeWriterGraph:
     def info(self, user_input):
         return f"PythonCodeWriterGraph: This agent is responsible for writing Python code. User Input: {user_input}"
 
-    def write_code(self, state: State, df):
+    def validate_code(self, state: State):
+        """Validate Python code. State object as input"""
+        code = state['code']['query']
+        print(f"Debug: validating code: {code}")
+        try:
+            exec(code)
+            return True, None
+        except Exception as e:
+            return False, str(e)
+
+    def write_code(self, state: State, df, max_attempts=3):
         """Generate Python code based on the input question. State object as input"""
 
         # Get the columns of the DataFrame
@@ -150,7 +160,20 @@ Generate the Python code based on the provided parameters.
         })
 
         structured_llm = self.model.with_structured_output(CodeOutput)
-        state['code'] = structured_llm.invoke(prompt)
+
+        for attempt in range(max_attempts):
+            state['code'] = structured_llm.invoke(prompt)
+            print(f"Debug: generated code: {state['code']}")
+            is_valid, error_message = self.validate_code(state)
+            if is_valid:
+                return state
+            else:
+                prompt = (f"The generated code is invalid. Error: {error_message}. "
+                          f"Attempt {attempt + 1} of {max_attempts}. "
+                          f"Previous invalid code: {state['code']}. "
+                          f"Please correct the code.")
+
+        state['code'] = "Failed to generate a valid code after multiple attempts."
         return state
 
 class PythonCodeWriterCluster:
@@ -160,7 +183,17 @@ class PythonCodeWriterCluster:
     def info(self, user_input):
         return f"PythonCodeWriterCluster: This agent is responsible for writing Python code. User Input: {user_input}"
 
-    def write_code(self, state: State, df):
+    def validate_code(self, state: State):
+        """Validate Python code. State object as input"""
+        code = state['code']['query']
+        print(f"Debug: validating code: {code}")
+        try:
+            exec(code)
+            return True, None
+        except Exception as e:
+            return False, str(e)
+
+    def write_code(self, state: State, df, max_attempts=3):
         """Generate Python code based on the input question. State object as input"""
 
         # Get the columns of the DataFrame
@@ -234,5 +267,18 @@ Generate the Python code based on the provided parameters.
         })
 
         structured_llm = self.model.with_structured_output(CodeOutput)
-        state['code'] = structured_llm.invoke(prompt)
+
+        for attempt in range(max_attempts):
+            state['code'] = structured_llm.invoke(prompt)
+            print(f"Debug: generated code: {state['code']}")
+            is_valid, error_message = self.validate_code(state)
+            if is_valid:
+                return state
+            else:
+                prompt = (f"The generated code is invalid. Error: {error_message}. "
+                          f"Attempt {attempt + 1} of {max_attempts}. "
+                          f"Previous invalid code: {state['code']}. "
+                          f"Please correct the code.")
+
+        state['code'] = "Failed to generate a valid code after multiple attempts."
         return state
