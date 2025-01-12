@@ -84,6 +84,20 @@ Question: {input}
         state['result'] = execute_query_tool.invoke(state["query"])
         return state
 
+    def generate_answer(self, state: State):
+        """Answer question using retrieved information as context. State object as input"""
+        prompt = (
+            "Given the following user question, corresponding SQL query, "
+            "and SQL result, answer the user question.\n\n"
+            f'Question: {state["question"]}\n'
+            f'SQL Query: {state["query"]}\n'
+            f'SQL Result: {state["result"]}'
+        )
+        print(prompt)
+        response = self.model.invoke(prompt)
+        state['answer'] = response.content
+        return state
+
 class PythonCodeWriterGraph:
     def __init__(self, model: ChatMistralAI):
         self.model = model
@@ -100,12 +114,11 @@ class PythonCodeWriterGraph:
         system_prompt = """
 You are a Python code writing agent specialized in creating graphs using Matplotlib.
 Your task is to select required columns from dataframe and generate Python code that visualizes data from a Pandas DataFrame.
-This is user request {input}. 
+This is user request {input}.
 Read user request carefully and define: graph type need to draw, parameters for required graph type.
-Assume the data is pre-fetched into a DataFrame named 'df'. 
-Do not create sample dataframe. 
+Assume the data is pre-fetched into a DataFrame named 'df'.
+Do not create sample dataframe.
 You should use Matplotlib to create the graphs.
-  
 
 ### Instructions:
 1. **DataFrame**: Assume the data is already loaded into a Pandas DataFrame named 'df'. Select required columns from DataFrame. No sample dataframe required.
@@ -121,7 +134,6 @@ You should use Matplotlib to create the graphs.
 
 ### DataFrame Columns:
 {columns}
-
 
 ### Task:
 Generate the Python code based on the provided parameters.
@@ -150,7 +162,7 @@ class PythonCodeWriterCluster:
 
     def write_code(self, state: State, df):
         """Generate Python code based on the input question. State object as input"""
-        
+
         # Get the columns of the DataFrame
         columns = df.columns.tolist()
         # Get the first few rows of the DataFrame as sample data
@@ -159,11 +171,11 @@ class PythonCodeWriterCluster:
         system_prompt = """
 You are a Python code writing agent specialized in creating clustering analysis using libraries like Scikit-learn.
 Your task is to generate Python code that performs clustering analysis on data from a Pandas DataFrame.
-This is user request {input}. 
+This is user request {input}.
 The data is pre-fetched into a DataFrame named 'df'. You should use Scikit-learn to create the clustering analysis.
-Analyze provided sample data, drop from 'df' useless features, select appropriate features to build clusters. 
-Do not create sample data dataframe, use for cluster analysis initial 'df' to create from it cleaned dataframe like:  
-df_cleaned = df.drop(columns=['column1','column2']) where column1, column2, columnN are useless features. 
+Analyze provided sample data, drop from 'df' useless features, select appropriate features to build clusters.
+Do not create sample data dataframe, use for cluster analysis initial 'df' to create from it cleaned dataframe like:
+df_cleaned = df.drop(columns=['column1','column2']) where column1, column2, columnN are useless features.
 
 ### Instructions:
 1. **DataFrame**: Assume the data is already loaded into a Pandas DataFrame named 'df'.
@@ -198,7 +210,6 @@ features = df[['feature1', 'feature2']]
 kmeans = KMeans(n_clusters=3)
 kmeans.fit(features)
 labels = kmeans.labels_
-
 
 plt.figure(figsize=(10, 6))
 plt.scatter(features['feature1'], features['feature2'], c=labels, cmap='viridis')

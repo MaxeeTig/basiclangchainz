@@ -31,12 +31,12 @@ python_agent_cluster = PythonCodeWriterCluster(model)
 def understand_user_intent(user_input):
     # call LLM to clarify intent
     user_input_clarified = clarify_intent(user_input)
-    # structured output from LLM - dictionary     
+    # structured output from LLM - dictionary
     intent = user_input_clarified['query']
-    
-    # glue user input with clarified intent and pass to classification 
-    intent = f"{user_input} {intent}" 
-    
+
+    # glue user input with clarified intent and pass to classification
+    intent = f"{user_input} {intent}"
+
     # set possible intent labels
     intent_labels = ["draw graph", "customer portrait or profile", "cluster analysis", "select data from database", "unknown"]
     user_intent = classify_text(intent, intent_labels)
@@ -68,6 +68,7 @@ def execute_agent_task(agent, intent, user_input, df=None):
         }
         state = agent.write_query(state)
         state = agent.execute_query(state)
+        state = agent.generate_answer(state)
         return state
     elif intent == 'draw graph':
         state = {
@@ -151,6 +152,10 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
                     print("Graph generated successfully.")
                 except Exception as e:
                     print(f"Error executing the generated code: {e}")
+
+            # Print the answer if the intent is 'select data from database'
+            if intent['top_label'] == 'select data from database':
+                print(f"Answer: {results['answer']}")
 
 if __name__ == "__main__":
     main_chat_loop()
