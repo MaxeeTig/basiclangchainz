@@ -11,10 +11,10 @@ from agents import MySQLQueryWriter, PythonCodeWriterGraph, PythonCodeWriterClus
 
 # Database connection parameters
 db_config = {
-    'user': 'cctrxn',
-    'password': 'cctrxnpwd',
+    'user': 'svbo',
+    'password': 'svbopwd',
     'host': 'localhost',
-    'database': 'cctransreview'
+    'database': 'botransactions'
 }
 
 # Create the SQLAlchemy engine
