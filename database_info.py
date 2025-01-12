@@ -1,3 +1,4 @@
+# database_info.py - getting information about tables in database
 from langchain_community.utilities import SQLDatabase
 
 # ===== Function to connect to database and get information about it
@@ -36,7 +37,7 @@ def main():
 
 # Print the database info on the screen
     print(f"Here is info about tables: {table_info}")
-    print(f"Here ae details: {db_info}")
+    print(f"Here are details: {db_info}")
 
 
 if __name__ == "__main__":
