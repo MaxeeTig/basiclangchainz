@@ -93,7 +93,7 @@ Question: {input}
             f'SQL Query: {state["query"]}\n'
             f'SQL Result: {state["result"]}'
         )
-        print(prompt)
+        print(f"Debug: Generating summary answer...")
         response = self.model.invoke(prompt)
         state['answer'] = response.content
         return state
