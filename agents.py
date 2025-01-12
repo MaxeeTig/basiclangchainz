@@ -3,6 +3,7 @@ from langchain_community.utilities import SQLDatabase
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
 from langchain_mistralai import ChatMistralAI
+import ast
 
 class QueryOutput(TypedDict):
     """Generated SQL query."""
@@ -106,13 +107,14 @@ class PythonCodeWriterGraph:
         return f"PythonCodeWriterGraph: This agent is responsible for writing Python code. User Input: {user_input}"
 
     def validate_code(self, state: State):
-        """Validate Python code. State object as input"""
+        """Validate Python code using static analysis. State object as input"""
         code = state['code']['query']
         print(f"Debug: validating code: {code}")
         try:
-            exec(code)
+            # Parse the code to check for syntax errors
+            ast.parse(code)
             return True, None
-        except Exception as e:
+        except SyntaxError as e:
             return False, str(e)
 
     def write_code(self, state: State, df, max_attempts=3):
@@ -184,13 +186,14 @@ class PythonCodeWriterCluster:
         return f"PythonCodeWriterCluster: This agent is responsible for writing Python code. User Input: {user_input}"
 
     def validate_code(self, state: State):
-        """Validate Python code. State object as input"""
+        """Validate Python code using static analysis. State object as input"""
         code = state['code']['query']
         print(f"Debug: validating code: {code}")
         try:
-            exec(code)
+            # Parse the code to check for syntax errors
+            ast.parse(code)
             return True, None
-        except Exception as e:
+        except SyntaxError as e:
             return False, str(e)
 
     def write_code(self, state: State, df, max_attempts=3):
