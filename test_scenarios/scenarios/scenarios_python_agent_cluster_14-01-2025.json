@@ -1,0 +1,22 @@
+{
+    "queries": [
+        {
+            "input": "Perform clustering analysis on customer transaction data.",
+            "expected_intent": "cluster analysis",
+            "expected_agent": "python_agent_cluster",
+            "expected_output": "Python code using Scikit-learn to cluster customer transaction data."
+        },
+        {
+            "input": "Segment customers based on their purchasing behavior.",
+            "expected_intent": "cluster analysis",
+            "expected_agent": "python_agent_cluster",
+            "expected_output": "Python code using Scikit-learn to segment customers by purchasing behavior."
+        },
+        {
+            "input": "Group addresses by region and city using clustering.",
+            "expected_intent": "cluster analysis",
+            "expected_agent": "python_agent_cluster",
+            "expected_output": "Python code using Scikit-learn to cluster addresses by region and city."
+        }
+    ]
+}
