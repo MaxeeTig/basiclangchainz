@@ -64,9 +64,10 @@ Question: {input}
 
         structured_llm = self.model.with_structured_output(QueryOutput)
 
+        print(f"Debug: Generating SQL query for question: {state['question']}")
         for attempt in range(max_attempts):
             state['query'] = structured_llm.invoke(prompt)
-            print(f"Debug: generated SQL: {state['query']}")
+            print(f"Debug: Generated SQL query: {state['query']}")
             is_valid, error_message = self.validate_query(state)
             if is_valid:
                 return state
@@ -82,7 +83,9 @@ Question: {input}
     def execute_query(self, state: State):
         """Execute SQL query. State object as input"""
         execute_query_tool = QuerySQLDataBaseTool(db=self.db)
+        print(f"Debug: Executing SQL query: {state['query']}")
         state['result'] = execute_query_tool.invoke(state["query"])
+        print(f"Debug: SQL query result: {state['result']}")
         return state
 
     def generate_answer(self, state: State):
@@ -94,8 +97,9 @@ Question: {input}
             f'SQL Query: {state["query"]}\n'
             f'SQL Result: {state["result"]}'
         )
-        print(f"Debug: Generating summary answer...")
+        print(f"Debug: Generating answer for question: {state['question']} with SQL result: {state['result']}")
         response = self.model.invoke(prompt)
+        print(f"Debug: Generated answer: {response.content}")
         state['answer'] = response.content
         return state
 
@@ -163,9 +167,10 @@ Generate the Python code based on the provided parameters.
 
         structured_llm = self.model.with_structured_output(CodeOutput)
 
+        print(f"Debug: Generating Python code for question: {state['question']}")
         for attempt in range(max_attempts):
             state['code'] = structured_llm.invoke(prompt)
-            print(f"Debug: generated code: {state['code']}")
+            print(f"Debug: Generated Python code: {state['code']}")
             is_valid, error_message = self.validate_code(state)
             if is_valid:
                 return state
@@ -271,9 +276,10 @@ Generate the Python code based on the provided parameters.
 
         structured_llm = self.model.with_structured_output(CodeOutput)
 
+        print(f"Debug: Generating Python code for question: {state['question']}")
         for attempt in range(max_attempts):
             state['code'] = structured_llm.invoke(prompt)
-            print(f"Debug: generated code: {state['code']}")
+            print(f"Debug: Generated Python code: {state['code']}")
             is_valid, error_message = self.validate_code(state)
             if is_valid:
                 return state

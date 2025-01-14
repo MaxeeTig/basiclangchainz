@@ -30,6 +30,7 @@ python_agent_cluster = PythonCodeWriterCluster(model)
 # ===== function to understand user's intent
 def understand_user_intent(user_input):
     # call LLM to clarify intent
+    print(f"Debug: Understanding user intent for input: {user_input}")
     user_input_clarified = clarify_intent(user_input)
     # structured output from LLM - dictionary
     intent = user_input_clarified['query']
@@ -40,11 +41,13 @@ def understand_user_intent(user_input):
     # set possible intent labels
     intent_labels = ["draw graph", "customer portrait or profile", "cluster analysis", "select data from database", "unknown"]
     user_intent = classify_text(intent, intent_labels)
+    print(f"Debug: Understood user intent: {user_intent}")
     return user_intent
 
 # ===== function to select agent for particular intent
 def select_agent(intent):
     # Select the appropriate agent based on the intent
+    print(f"Debug: Selecting agent for intent: {intent}")
     if intent == 'select data from database':
         return mysql_agent
     elif intent == 'draw graph':
@@ -59,6 +62,7 @@ def select_agent(intent):
 # ===== function to execute agent on the basis of intent
 def execute_agent_task(agent, intent, user_input, df=None):
     # Execute the agent's task based on the intent
+    print(f"Debug: Executing agent task for intent: {intent} with user input: {user_input}")
     if intent == 'select data from database':
         state = {
             "question": user_input,
@@ -97,9 +101,9 @@ def pre_fetch_data(intent, user_input):
 #   reserved call to llm
 #    sql_query =  execute_agent_task(mysql_agent, intent, user_input)
     sql_query = '''
-    SELECT oper_date, issuer_card_id, mcc, merchant_city, merchant_country, oper_amount_amount_value, oper_amount_currency, oper_type 
-    FROM operations 
-    WHERE is_reversal = 0 
+    SELECT oper_date, issuer_card_id, mcc, merchant_city, merchant_country, oper_amount_amount_value, oper_amount_currency, oper_type
+    FROM operations
+    WHERE is_reversal = 0
     AND oper_type IS NOT NULL
     AND mcc <> ''
     AND merchant_country REGEXP '^[0-9]+$'
@@ -107,10 +111,12 @@ def pre_fetch_data(intent, user_input):
     AND oper_amount_amount_value > 1.00
     AND oper_amount_amount_value < 1000000000.00
     '''
+    print(f"Debug: Pre-fetching data for intent: {intent} with user input: {user_input}")
     print("Debug: pre-fetching data to dataframe... ")
 
     # Fetch data from the database
     df = pd.read_sql(sql_query, engine)
+    print(f"Debug: Pre-fetched data: {df.head()}")
     return df
 
 # ===== Main chat loop =====
@@ -151,6 +157,7 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
 
             # Execute the generated Python code if the intent is 'draw graph'
             if intent['top_label'] == 'draw graph':
+                print(f"Debug: Executing generated code for graph drawing: {results}")
                 try:
                     exec(results)
                     print("Graph generated successfully.")

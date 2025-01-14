@@ -6,7 +6,6 @@ model = ChatMistralAI(model="mistral-large-latest")
 from langchain_core.messages import HumanMessage, SystemMessage
 from typing_extensions import TypedDict, Annotated
 
-
 class LLMOutput(TypedDict):
     """Generated LLM structured output."""
     query: Annotated[str, ..., "Structured output dictionary."]
@@ -14,12 +13,12 @@ class LLMOutput(TypedDict):
 # Load the zero-shot classification pipeline
 classifier = pipeline("zero-shot-classification", multi_label=False, model="facebook/bart-large-mnli")
 
-# ===== fuction to clarify user intent with LLM
+# ===== function to clarify user intent with LLM
 def clarify_intent(user_input):
     system_prompt = '''
 As helpful assistant on the first line of customer support you:
 1. Carefully review user's query.
-2. Define what user wants to know. 
+2. Define what user wants to know.
 3. Create and print out short description summarizing user intent.
 
 #Output:#
@@ -31,7 +30,7 @@ User: 'How can I get from Paris to Rome?'
 Assistant: 'transportation options'
 
 Do not answer user's question. Just return summary intent.
-If user enters random symbols return Reponse: unknown 
+If user enters random symbols return Response: unknown
 #Example#:
 User: 'dfwtugeslgrsdgf'
 Assistant: 'unknown'
@@ -44,16 +43,13 @@ Assistant: 'unknown'
 
     structured_llm = model.with_structured_output(LLMOutput)
 
-    print(f"Debug: Clarifing user intent...")
+    print(f"Debug: Invoking LLM to clarify intent with user input: {user_input}")
     response = structured_llm.invoke(messages)
-
-    #    response = model.invoke(messages)
-    print(f"Debug. LLM clarifies that: {response}")
+    print(f"Debug: LLM response for intent clarification: {response}")
 
     return response
 
-
-# ===== function to classify user intent in its input 
+# ===== function to classify user intent in its input
 def classify_text(text: str, candidate_labels: list) -> dict:
     """
     Classify the given text using the facebook/bart-large-mnli model.
@@ -65,12 +61,14 @@ def classify_text(text: str, candidate_labels: list) -> dict:
     hypothesis_template = "This is a request for {}."
 
     # Perform classification
+    print(f"Debug: Classifying text: {text} with candidate labels: {candidate_labels}")
     result = classifier(
         text,
         candidate_labels=candidate_labels,
         hypothesis_template=hypothesis_template,
         multi_label=False
     )
+    print(f"Debug: Classification result: {result}")
 
     # Extract the top label and its confidence score
     top_label = result['labels'][0]
@@ -81,4 +79,3 @@ def classify_text(text: str, candidate_labels: list) -> dict:
         "top_label": top_label,
         "confidence": confidence
     }
-
