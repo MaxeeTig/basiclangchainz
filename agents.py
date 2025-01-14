@@ -5,6 +5,9 @@ from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
 from langchain_mistralai import ChatMistralAI
 import ast
 
+# Global debug mode variable
+debug_mode = True
+
 class QueryOutput(TypedDict):
     """Generated SQL query."""
     query: Annotated[str, ..., "Syntactically valid SQL query."]
@@ -30,7 +33,8 @@ class MySQLQueryWriter:
     def validate_query(self, state: State):
         """Validate SQL query. State object as input"""
         query = state['query']['query']
-        print(f"Debug: validating SQL: {query}")
+        if debug_mode:
+            print(f"Debug: validating SQL: {query}")
         try:
             result = self.db.run(query)
             return True, None
@@ -64,10 +68,12 @@ Question: {input}
 
         structured_llm = self.model.with_structured_output(QueryOutput)
 
-        print(f"Debug: Generating SQL query for question: {state['question']}")
+        if debug_mode:
+            print(f"Debug: Generating SQL query for question: {state['question']}")
         for attempt in range(max_attempts):
             state['query'] = structured_llm.invoke(prompt)
-            print(f"Debug: Generated SQL query: {state['query']}")
+            if debug_mode:
+                print(f"Debug: Generated SQL query: {state['query']}")
             is_valid, error_message = self.validate_query(state)
             if is_valid:
                 return state
@@ -83,9 +89,11 @@ Question: {input}
     def execute_query(self, state: State):
         """Execute SQL query. State object as input"""
         execute_query_tool = QuerySQLDataBaseTool(db=self.db)
-        print(f"Debug: Executing SQL query: {state['query']}")
+        if debug_mode:
+            print(f"Debug: Executing SQL query: {state['query']}")
         state['result'] = execute_query_tool.invoke(state["query"])
-        print(f"Debug: SQL query result: {state['result']}")
+        if debug_mode:
+            print(f"Debug: SQL query result: {state['result']}")
         return state
 
     def generate_answer(self, state: State):
@@ -97,9 +105,11 @@ Question: {input}
             f'SQL Query: {state["query"]}\n'
             f'SQL Result: {state["result"]}'
         )
-        print(f"Debug: Generating answer for question: {state['question']} with SQL result: {state['result']}")
+        if debug_mode:
+            print(f"Debug: Generating answer for question: {state['question']} with SQL result: {state['result']}")
         response = self.model.invoke(prompt)
-        print(f"Debug: Generated answer: {response.content}")
+        if debug_mode:
+            print(f"Debug: Generated answer: {response.content}")
         state['answer'] = response.content
         return state
 
@@ -113,7 +123,8 @@ class PythonCodeWriterGraph:
     def validate_code(self, state: State):
         """Validate Python code using static analysis. State object as input"""
         code = state['code']['query']
-        print(f"Debug: validating code: {code}")
+        if debug_mode:
+            print(f"Debug: validating code: {code}")
         try:
             # Parse the code to check for syntax errors
             ast.parse(code)
@@ -167,10 +178,12 @@ Generate the Python code based on the provided parameters.
 
         structured_llm = self.model.with_structured_output(CodeOutput)
 
-        print(f"Debug: Generating Python code for question: {state['question']}")
+        if debug_mode:
+            print(f"Debug: Generating Python code for question: {state['question']}")
         for attempt in range(max_attempts):
             state['code'] = structured_llm.invoke(prompt)
-            print(f"Debug: Generated Python code: {state['code']}")
+            if debug_mode:
+                print(f"Debug: Generated Python code: {state['code']}")
             is_valid, error_message = self.validate_code(state)
             if is_valid:
                 return state
@@ -193,7 +206,8 @@ class PythonCodeWriterCluster:
     def validate_code(self, state: State):
         """Validate Python code using static analysis. State object as input"""
         code = state['code']['query']
-        print(f"Debug: validating code: {code}")
+        if debug_mode:
+            print(f"Debug: validating code: {code}")
         try:
             # Parse the code to check for syntax errors
             ast.parse(code)
@@ -276,10 +290,12 @@ Generate the Python code based on the provided parameters.
 
         structured_llm = self.model.with_structured_output(CodeOutput)
 
-        print(f"Debug: Generating Python code for question: {state['question']}")
+        if debug_mode:
+            print(f"Debug: Generating Python code for question: {state['question']}")
         for attempt in range(max_attempts):
             state['code'] = structured_llm.invoke(prompt)
-            print(f"Debug: Generated Python code: {state['code']}")
+            if debug_mode:
+                print(f"Debug: Generated Python code: {state['code']}")
             is_valid, error_message = self.validate_code(state)
             if is_valid:
                 return state

@@ -9,6 +9,9 @@ import pandas as pd
 # our file agents.py
 from agents import MySQLQueryWriter, PythonCodeWriterGraph, PythonCodeWriterCluster  # My agents
 
+# Global debug mode variable
+debug_mode = True
+
 # Database connection parameters
 db_config = {
     'user': 'svbo',
@@ -30,7 +33,8 @@ python_agent_cluster = PythonCodeWriterCluster(model)
 # ===== function to understand user's intent
 def understand_user_intent(user_input):
     # call LLM to clarify intent
-    print(f"Debug: Understanding user intent for input: {user_input}")
+    if debug_mode:
+        print(f"Debug: Understanding user intent for input: {user_input}")
     user_input_clarified = clarify_intent(user_input)
     # structured output from LLM - dictionary
     intent = user_input_clarified['query']
@@ -41,13 +45,15 @@ def understand_user_intent(user_input):
     # set possible intent labels
     intent_labels = ["draw graph", "customer portrait or profile", "cluster analysis", "select data from database", "unknown"]
     user_intent = classify_text(intent, intent_labels)
-    print(f"Debug: Understood user intent: {user_intent}")
+    if debug_mode:
+        print(f"Debug: Understood user intent: {user_intent}")
     return user_intent
 
 # ===== function to select agent for particular intent
 def select_agent(intent):
     # Select the appropriate agent based on the intent
-    print(f"Debug: Selecting agent for intent: {intent}")
+    if debug_mode:
+        print(f"Debug: Selecting agent for intent: {intent}")
     if intent == 'select data from database':
         return mysql_agent
     elif intent == 'draw graph':
@@ -62,7 +68,8 @@ def select_agent(intent):
 # ===== function to execute agent on the basis of intent
 def execute_agent_task(agent, intent, user_input, df=None):
     # Execute the agent's task based on the intent
-    print(f"Debug: Executing agent task for intent: {intent} with user input: {user_input}")
+    if debug_mode:
+        print(f"Debug: Executing agent task for intent: {intent} with user input: {user_input}")
     if intent == 'select data from database':
         state = {
             "question": user_input,
@@ -111,12 +118,14 @@ def pre_fetch_data(intent, user_input):
     AND oper_amount_amount_value > 1.00
     AND oper_amount_amount_value < 1000000000.00
     '''
-    print(f"Debug: Pre-fetching data for intent: {intent} with user input: {user_input}")
-    print("Debug: pre-fetching data to dataframe... ")
+    if debug_mode:
+        print(f"Debug: Pre-fetching data for intent: {intent} with user input: {user_input}")
+        print("Debug: pre-fetching data to dataframe... ")
 
     # Fetch data from the database
     df = pd.read_sql(sql_query, engine)
-    print(f"Debug: Pre-fetched data: {df.head()}")
+    if debug_mode:
+        print(f"Debug: Pre-fetched data: {df.head()}")
     return df
 
 # ===== Main chat loop =====
@@ -131,33 +140,39 @@ def main_chat_loop(welcome_message="Welcome to Chatbot!"):
             print("Exiting the chatbot. Goodbye!")
             break
         else:
-            print(f"Getting extra information from local data for query: '{user_input}'...")
+            if debug_mode:
+                print(f"Getting extra information from local data for query: '{user_input}'...")
 
             # call function to define user's intent
             intent = understand_user_intent(user_input)
-            print(f"User needs to: {intent['top_label']}")
-            print(intent)
+            if debug_mode:
+                print(f"User needs to: {intent['top_label']}")
+                print(intent)
 
             if intent['top_label'] == 'unknown':
                 print("Sorry, I do not understand your question. Please try again.")
                 continue
 
             agent = select_agent(intent['top_label'])
-            print(f"Selected agent: {agent}")
+            if debug_mode:
+                print(f"Selected agent: {agent}")
 
             # Pre-fetch data if the intent requires it
             if intent['top_label'] in ['draw graph', 'cluster analysis']:
                 df = pre_fetch_data(intent['top_label'], user_input)
-                print(f"Data fetched to df:{df.head()}")
+                if debug_mode:
+                    print(f"Data fetched to df:{df.head()}")
             else:
                 df = None
 
             results = execute_agent_task(agent, intent['top_label'], user_input, df)
-            print(f"Debug: agent results: {results}")
+            if debug_mode:
+                print(f"Debug: agent results: {results}")
 
             # Execute the generated Python code if the intent is 'draw graph'
             if intent['top_label'] == 'draw graph':
-                print(f"Debug: Executing generated code for graph drawing: {results}")
+                if debug_mode:
+                    print(f"Debug: Executing generated code for graph drawing: {results}")
                 try:
                     exec(results)
                     print("Graph generated successfully.")

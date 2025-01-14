@@ -6,6 +6,9 @@ model = ChatMistralAI(model="mistral-large-latest")
 from langchain_core.messages import HumanMessage, SystemMessage
 from typing_extensions import TypedDict, Annotated
 
+# Global debug mode variable
+debug_mode = True
+
 class LLMOutput(TypedDict):
     """Generated LLM structured output."""
     query: Annotated[str, ..., "Structured output dictionary."]
@@ -43,9 +46,11 @@ Assistant: 'unknown'
 
     structured_llm = model.with_structured_output(LLMOutput)
 
-    print(f"Debug: Invoking LLM to clarify intent with user input: {user_input}")
+    if debug_mode:
+        print(f"Debug: Invoking LLM to clarify intent with user input: {user_input}")
     response = structured_llm.invoke(messages)
-    print(f"Debug: LLM response for intent clarification: {response}")
+    if debug_mode:
+        print(f"Debug: LLM response for intent clarification: {response}")
 
     return response
 
@@ -61,14 +66,16 @@ def classify_text(text: str, candidate_labels: list) -> dict:
     hypothesis_template = "This is a request for {}."
 
     # Perform classification
-    print(f"Debug: Classifying text: {text} with candidate labels: {candidate_labels}")
+    if debug_mode:
+        print(f"Debug: Classifying text: {text} with candidate labels: {candidate_labels}")
     result = classifier(
         text,
         candidate_labels=candidate_labels,
         hypothesis_template=hypothesis_template,
         multi_label=False
     )
-    print(f"Debug: Classification result: {result}")
+    if debug_mode:
+        print(f"Debug: Classification result: {result}")
 
     # Extract the top label and its confidence score
     top_label = result['labels'][0]
