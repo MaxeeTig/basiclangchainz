@@ -16,6 +16,15 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_mistralai import ChatMistralAI
 from sqlalchemy import create_engine
 import ast
+from typing_extensions import TypedDict, Annotated
+from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
+
+# Global debug mode variable
+debug_mode = True
+
+class QueryOutput(TypedDict):
+    """Generated SQL query."""
+    query: Annotated[str, ..., "Syntactically valid SQL query."]
 
 class Pipeline:
     class Valves(BaseModel):
