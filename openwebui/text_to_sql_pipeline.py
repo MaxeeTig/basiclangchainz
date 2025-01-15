@@ -60,8 +60,9 @@ class Pipeline:
         # This function is called when the server is stopped.
         pass
 
-    def validate_query(self, query):
+    def validate_query(self, query_output):
         """Validate SQL query."""
+        query = query_output['query']
         if debug_mode:
             print(f"Debug: validating SQL: {query}")
         try:
@@ -100,22 +101,23 @@ Question: {input}
         if debug_mode:
             print(f"Debug: Generating SQL query for question: {user_message}")
         for attempt in range(max_attempts):
-            query = structured_llm.invoke(prompt)
+            query_output = structured_llm.invoke(prompt)
             if debug_mode:
-                print(f"Debug: Generated SQL query: {query}")
-            is_valid, error_message = self.validate_query(query)
+                print(f"Debug: Generated SQL query: {query_output}")
+            is_valid, error_message = self.validate_query(query_output)
             if is_valid:
-                return query
+                return query_output
             else:
                 prompt = (f"The generated query is invalid. Error: {error_message}. "
                           f"Attempt {attempt + 1} of {max_attempts}. "
-                          f"Previous invalid query: {query}. "
+                          f"Previous invalid query: {query_output}. "
                           f"Please correct the query.")
 
-        return "Failed to generate a valid query after multiple attempts."
+        return {"query": "Failed to generate a valid query after multiple attempts."}
 
-    def execute_query(self, query):
+    def execute_query(self, query_output):
         """Execute SQL query."""
+        query = query_output['query']
         execute_query_tool = QuerySQLDataBaseTool(db=self.db)
         if debug_mode:
             print(f"Debug: Executing SQL query: {query}")
@@ -124,8 +126,9 @@ Question: {input}
             print(f"Debug: SQL query result: {result}")
         return result
 
-    def generate_answer(self, user_message, query, result):
+    def generate_answer(self, user_message, query_output, result):
         """Answer question using retrieved information as context."""
+        query = query_output['query']
         prompt = (
             "Given the following user question, corresponding SQL query, "
             "and SQL result, answer the user question.\n\n"
@@ -151,8 +154,8 @@ Question: {input}
         # Set up LLM connection; uses mistral-large-latest model
         self.model = ChatMistralAI(model="mistral-large-latest")
 
-        query = self.write_query(user_message)
-        result = self.execute_query(query)
-        answer = self.generate_answer(user_message, query, result)
+        query_output = self.write_query(user_message)
+        result = self.execute_query(query_output)
+        answer = self.generate_answer(user_message, query_output, result)
 
         return answer
