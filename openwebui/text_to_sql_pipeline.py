@@ -5,7 +5,6 @@ date: 2024-08-11
 version: 1.1
 license: MIT
 description: A pipeline for using text-to-SQL for retrieving relevant information from a database.
-requirements: sqlalchemy, pymysql
 """
 
 from typing import List, Union, Generator, Iterator
