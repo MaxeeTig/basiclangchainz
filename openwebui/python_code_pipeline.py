@@ -96,12 +96,50 @@ class Pipeline:
         else:
             # Pre-fetch data
             df = self.pre_fetch_data('draw graph', user_message)
+            columns = df.columns.tolist()
 
-            # Generate Python code for graph drawing
-            code_generation_prompt = f"Generate Python code to draw a graph using Matplotlib for the following data:\n{df.head()}"
-            if debug_mode:
-                print(f"Debug: Code generation prompt: {code_generation_prompt}")
-            code_response = model.generate_response(code_generation_prompt)
+
+        system_prompt = """
+You are a Python code writing agent specialized in creating graphs using Matplotlib.
+Your task is to select required columns from dataframe and generate Python code that visualizes data from a Pandas DataFrame.
+This is user request {input}.
+Read user request carefully and define: graph type need to draw, parameters for required graph type.
+Assume the data is pre-fetched into a DataFrame named 'df'.
+Do not create sample dataframe.
+You should use Matplotlib to create the graphs.
+
+### Instructions:
+1. **DataFrame**: Assume the data is already loaded into a Pandas DataFrame named 'df'. Select required columns from DataFrame. No sample dataframe required.
+2. **Matplotlib**: Use Matplotlib to create the graphs.
+3. **Parameters**: Use the following parameters from the operations table to customize the graph:
+   - `x_column`: The column name to use for the x-axis.
+   - `y_column`: The column name to use for the y-axis.
+   - `graph_type`: The type of graph to create (e.g., 'line', 'bar', 'scatter', 'histogram').
+   - `title`: The title of the graph.
+   - `xlabel`: The label for the x-axis.
+   - `ylabel`: The label for the y-axis.
+4. **Output**: Generate the Python code as a string and return it.
+
+### DataFrame Columns:
+{columns}
+
+### Task:
+Generate the Python code based on the provided parameters.
+"""
+
+            code_prompt_template = ChatPromptTemplate([
+            ("system", system_prompt),
+            ("user", ""),
+            ])
+
+            prompt = code_prompt_template.invoke({
+            "columns": columns,
+            "input": user_message,
+            })
+
+            structured_llm = self.model.with_structured_output(CodeOutput)
+
+            code_response = structured_llm.invoke(prompt)
             code = code_response['query']
 
             # Execute the generated Python code
