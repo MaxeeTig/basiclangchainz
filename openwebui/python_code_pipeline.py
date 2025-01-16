@@ -1,42 +1,82 @@
 from typing import List, Union, Generator, Iterator
 from schemas import OpenAIChatMessage
 import subprocess
+import pandas as pd
+from sqlalchemy import create_engine
+from langchain_community.utilities import SQLDatabase
+from langchain_mistralai import ChatMistralAI
+import matplotlib.pyplot as plt
+import io
 
+# Database connection parameters
+db_config = {
+    'user': 'svbo',
+    'password': 'svbopwd',
+    'host': 'localhost',
+    'database': 'botransactions'
+}
+
+# Create the SQLAlchemy engine
+engine = create_engine(f"mysql+pymysql://{db_config['user']}:{db_config['password']}@{db_config['host']}/{db_config['database']}")
+db = SQLDatabase(engine=engine)
+
+# Initialize the Mistral LLM
+model = ChatMistralAI(model="mistral-large-latest")
 
 class Pipeline:
     def __init__(self):
-        # Optionally, you can set the id and name of the pipeline.
-        # Best practice is to not specify the id so that it can be automatically inferred from the filename, so that users can install multiple versions of the same pipeline.
-        # The identifier must be unique across all pipelines.
-        # The identifier must be an alphanumeric string that can include underscores or hyphens. It cannot contain spaces, special characters, slashes, or backslashes.
-        # self.id = "python_code_pipeline"
-        self.name = "Python Code Pipeline"
-        pass
+        self.name = "InfoGraph Code Assistant"
 
     async def on_startup(self):
-        # This function is called when the server is started.
         print(f"on_startup:{__name__}")
-        pass
 
     async def on_shutdown(self):
-        # This function is called when the server is stopped.
         print(f"on_shutdown:{__name__}")
-        pass
 
-    def execute_python_code(self, code):
+    def pre_fetch_data(self, intent, user_input):
+        sql_query = '''
+        SELECT oper_date, issuer_card_id, mcc, merchant_city, merchant_country, oper_amount_amount_value, oper_amount_currency, oper_type
+        FROM operations
+        WHERE is_reversal = 0
+        AND oper_type IS NOT NULL
+        AND mcc <> ''
+        AND merchant_country REGEXP '^[0-9]+$'
+        AND merchant_country <> '0'
+        AND oper_amount_amount_value > 1.00
+        AND oper_amount_amount_value < 1000000000.00
+        '''
+        print(f"Debug: Pre-fetching data for intent: {intent} with user input: {user_input}")
+        print("Debug: pre-fetching data to dataframe... ")
+
+        # Fetch data from the database
+        df = pd.read_sql(sql_query, engine)
+        print(f"Debug: Pre-fetched data: {df.head()}")
+        return df
+
+    def execute_python_code(self, code, df):
         try:
-            result = subprocess.run(
-                ["python", "-c", code], capture_output=True, text=True, check=True
-            )
-            stdout = result.stdout.strip()
-            return stdout, result.returncode
-        except subprocess.CalledProcessError as e:
-            return e.output.strip(), e.returncode
+            exec(code, globals(), locals())
+            return locals()['result'], 0
+        except Exception as e:
+            return str(e), 1
+
+    def generate_graph(self, code, df):
+        try:
+            exec(code, globals(), locals())
+            fig = locals().get('fig', None)
+            if fig:
+                buf = io.BytesIO()
+                fig.savefig(buf, format='png')
+                buf.seek(0)
+                return buf.getvalue(), 0
+            else:
+                return None, 1
+        except Exception as e:
+            return str(e), 1
 
     def pipe(
         self, user_message: str, model_id: str, messages: List[dict], body: dict
     ) -> Union[str, Generator, Iterator]:
-        # This is where you can add your custom pipelines like RAG.
         print(f"pipe:{__name__}")
 
         print(messages)
@@ -44,7 +84,19 @@ class Pipeline:
 
         if body.get("title", False):
             print("Title Generation")
-            return "Python Code Pipeline"
+            return "InfoGraph Code Assistant"
         else:
-            stdout, return_code = self.execute_python_code(user_message)
-            return stdout
+            # Pre-fetch data
+            df = self.pre_fetch_data('draw graph', user_message)
+
+            # Generate Python code for graph drawing
+            code_generation_prompt = f"Generate Python code to draw a graph using Matplotlib for the following data:\n{df.head()}"
+            code_response = model.generate_code(code_generation_prompt)
+            code = code_response['query']
+
+            # Execute the generated Python code
+            graph_image, return_code = self.generate_graph(code, df)
+            if return_code == 0:
+                return graph_image
+            else:
+                return graph_image
