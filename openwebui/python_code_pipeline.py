@@ -101,7 +101,7 @@ class Pipeline:
             code_generation_prompt = f"Generate Python code to draw a graph using Matplotlib for the following data:\n{df.head()}"
             if debug_mode:
                 print(f"Debug: Code generation prompt: {code_generation_prompt}")
-            code_response = model.generate_code(code_generation_prompt)
+            code_response = model.generate_response(code_generation_prompt)
             code = code_response['query']
 
             # Execute the generated Python code
