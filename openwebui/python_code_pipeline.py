@@ -153,8 +153,7 @@ You should use Matplotlib to create the graphs.
    - `ylabel`: The label for the y-axis.
 4. **Output**: Generate the Python code as a string and return it.
 5. **Important**: Do not include the `plt.show()` statement in the generated code.
-Instead, create a Matplotlib figure and assign it to a variable named `fig`.
-fig = plt.figure(figsize=(10, 6))
+Instead, create a Matplotlib figure and save it to file using savefig() method to image_path = 'generated_graph.png'
 
 ### DataFrame Columns:
 {columns}
@@ -172,6 +171,7 @@ plt.ylabel('Total Operation Amount')
 plt.title('Distribution of Operations by Month')
 plt.xticks(rotation=45)
 plt.tight_layout()
+
 
 ### Task:
 Generate the Python code based on the provided parameters.

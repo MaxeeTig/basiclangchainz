@@ -1,7 +1,7 @@
 """
 title: DB Pipeline
-author: 0xThresh
-date: 2024-08-11
+author: Maxim Tigulev
+date: 16 Jan 2025
 version: 1.1
 license: MIT
 description: A pipeline for using text-to-SQL for retrieving relevant information from a database.
@@ -26,6 +26,7 @@ class QueryOutput(TypedDict):
 
 class Pipeline:
     class Valves(BaseModel):
+# These fields will be available in UI
         DB_USER: str
         DB_PASSWORD: str
         DB_HOST: str
@@ -33,7 +34,7 @@ class Pipeline:
 
     # Update valves/ environment variables based on your selected database
     def __init__(self):
-        self.name = "Database RAG Pipeline"
+        self.name = "Data Finder Companion"
         self.engine = None
         self.nlsql_response = ""
 
@@ -137,7 +138,7 @@ Question: {input}
             f'SQL Result: {result}'
         )
         if debug_mode:
-            print(f"Debug: Generating answer for question: {user_message} with SQL result: {result}")
+            print(f"Debug: Generating answer for question: {user_message}")
         response = self.model.invoke(prompt)
         if debug_mode:
             print(f"Debug: Generated answer: {response.content}")
