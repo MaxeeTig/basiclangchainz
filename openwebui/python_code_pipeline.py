@@ -29,6 +29,7 @@ model = ChatMistralAI(model="mistral-large-latest")
 class Pipeline:
     def __init__(self):
         self.name = "InfoGraph Code Assistant"
+        self.model = model  # Ensure the model is accessible within the class
 
     async def on_startup(self):
         if debug_mode:
@@ -97,7 +98,6 @@ class Pipeline:
             # Pre-fetch data
             df = self.pre_fetch_data('draw graph', user_message)
             columns = df.columns.tolist()
-
 
         system_prompt = """
 You are a Python code writing agent specialized in creating graphs using Matplotlib.
