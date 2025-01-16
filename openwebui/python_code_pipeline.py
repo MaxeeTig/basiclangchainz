@@ -127,26 +127,26 @@ You should use Matplotlib to create the graphs.
 Generate the Python code based on the provided parameters.
 """
 
-            code_prompt_template = ChatPromptTemplate([
+        code_prompt_template = ChatPromptTemplate([
             ("system", system_prompt),
             ("user", ""),
-            ])
+        ])
 
-            prompt = code_prompt_template.invoke({
+        prompt = code_prompt_template.invoke({
             "columns": columns,
             "input": user_message,
-            })
+        })
 
-            structured_llm = self.model.with_structured_output(CodeOutput)
+        structured_llm = self.model.with_structured_output(CodeOutput)
 
-            code_response = structured_llm.invoke(prompt)
-            code = code_response['query']
+        code_response = structured_llm.invoke(prompt)
+        code = code_response['query']
 
-            # Execute the generated Python code
-            if debug_mode:
-                print(f"Debug: Executing generated code: {code}")
-            graph_image, return_code = self.generate_graph(code, df)
-            if return_code == 0:
-                return graph_image
-            else:
-                return graph_image
+        # Execute the generated Python code
+        if debug_mode:
+            print(f"Debug: Executing generated code: {code}")
+        graph_image, return_code = self.generate_graph(code, df)
+        if return_code == 0:
+            return graph_image
+        else:
+            return graph_image
