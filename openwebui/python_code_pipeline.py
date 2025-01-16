@@ -10,6 +10,7 @@ from langchain_mistralai import ChatMistralAI
 import matplotlib
 import matplotlib.pyplot as plt
 import io
+import os
 
 # Global debug mode variable
 debug_mode = True
@@ -17,8 +18,6 @@ debug_mode = True
 class CodeOutput(TypedDict):
     """Generated python code."""
     query: Annotated[str, ..., "Syntactically valid Python code."]
-
-
 
 # Database connection parameters
 db_config = {
@@ -78,35 +77,43 @@ class Pipeline:
             return str(e), 1
 
     def generate_graph(self, code, df):
-     try:
-         # Set Matplotlib to use a non-interactive backend
-         matplotlib.use('Agg')
+        try:
+            # Set Matplotlib to use a non-interactive backend
+            matplotlib.use('Agg')
 
-         # Execute the generated Python code
-         exec(code, globals(), locals())
+            # Execute the generated Python code
+            exec(code, globals(), locals())
 
-         # Debug: Print the local variables to inspect the contents
-         if debug_mode:
-             print("Debug: Local variables after exec:")
-             for key, value in locals().items():
-                 print(f"  {key}: {type(value)}")
+            # Debug: Print the local variables to inspect the contents
+            if debug_mode:
+                print("Debug: Local variables after exec:")
+                for key, value in locals().items():
+                    print(f"  {key}: {type(value)}")
 
-         # Retrieve the 'fig' object from the local variables
-         fig = locals().get('fig', None)
+            # Retrieve the 'fig' object from the local variables
+            fig = locals().get('fig', None)
 
-         # Debug: Print the 'fig' object to verify it was created
-         if debug_mode:
-             print(f"Debug: 'fig' object: {fig}")
+            # Debug: Print the 'fig' object to verify it was created
+            if debug_mode:
+                print(f"Debug: 'fig' object: {fig}")
 
-         if fig:
-             buf = io.BytesIO()
-             fig.savefig(buf, format='png')
-             buf.seek(0)
-             return buf.getvalue(), 0
-         else:
-             return None, 1
-     except Exception as e:
-         return str(e), 1
+            # Save the figure to a local file
+            image_path = 'generated_graph.png'
+            if fig:
+                fig.savefig(image_path, format='png')
+            else:
+                plt.savefig(image_path, format='png')
+
+            # Read the image file into a bytes buffer
+            with open(image_path, 'rb') as f:
+                image_data = f.read()
+
+            # Remove the local file
+            os.remove(image_path)
+
+            return image_data, 0
+        except Exception as e:
+            return str(e), 1
 
     def pipe(
         self, user_message: str, model_id: str, messages: List[dict], body: dict
@@ -145,7 +152,7 @@ You should use Matplotlib to create the graphs.
    - `xlabel`: The label for the x-axis.
    - `ylabel`: The label for the y-axis.
 4. **Output**: Generate the Python code as a string and return it.
-5. **Important**: Do not include the `plt.show()` statement in the generated code. 
+5. **Important**: Do not include the `plt.show()` statement in the generated code.
 Instead, create a Matplotlib figure and assign it to a variable named `fig`.
 fig = plt.figure(figsize=(10, 6))
 
@@ -165,7 +172,6 @@ plt.ylabel('Total Operation Amount')
 plt.title('Distribution of Operations by Month')
 plt.xticks(rotation=45)
 plt.tight_layout()
-
 
 ### Task:
 Generate the Python code based on the provided parameters.
