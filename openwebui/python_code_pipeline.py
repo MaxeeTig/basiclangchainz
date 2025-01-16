@@ -8,6 +8,9 @@ from langchain_mistralai import ChatMistralAI
 import matplotlib.pyplot as plt
 import io
 
+# Global debug mode variable
+debug_mode = True
+
 # Database connection parameters
 db_config = {
     'user': 'svbo',
@@ -28,10 +31,12 @@ class Pipeline:
         self.name = "InfoGraph Code Assistant"
 
     async def on_startup(self):
-        print(f"on_startup:{__name__}")
+        if debug_mode:
+            print(f"Debug: on_startup:{__name__}")
 
     async def on_shutdown(self):
-        print(f"on_shutdown:{__name__}")
+        if debug_mode:
+            print(f"Debug: on_shutdown:{__name__}")
 
     def pre_fetch_data(self, intent, user_input):
         sql_query = '''
@@ -45,12 +50,14 @@ class Pipeline:
         AND oper_amount_amount_value > 1.00
         AND oper_amount_amount_value < 1000000000.00
         '''
-        print(f"Debug: Pre-fetching data for intent: {intent} with user input: {user_input}")
-        print("Debug: pre-fetching data to dataframe... ")
+        if debug_mode:
+            print(f"Debug: Pre-fetching data for intent: {intent} with user input: {user_input}")
+            print("Debug: pre-fetching data to dataframe... ")
 
         # Fetch data from the database
         df = pd.read_sql(sql_query, engine)
-        print(f"Debug: Pre-fetched data: {df.head()}")
+        if debug_mode:
+            print(f"Debug: Pre-fetched data: {df.head()}")
         return df
 
     def execute_python_code(self, code, df):
@@ -77,13 +84,14 @@ class Pipeline:
     def pipe(
         self, user_message: str, model_id: str, messages: List[dict], body: dict
     ) -> Union[str, Generator, Iterator]:
-        print(f"pipe:{__name__}")
-
-        print(messages)
-        print(user_message)
+        if debug_mode:
+            print(f"Debug: pipe:{__name__}")
+            print(messages)
+            print(user_message)
 
         if body.get("title", False):
-            print("Title Generation")
+            if debug_mode:
+                print("Debug: Title Generation")
             return "InfoGraph Code Assistant"
         else:
             # Pre-fetch data
@@ -91,10 +99,14 @@ class Pipeline:
 
             # Generate Python code for graph drawing
             code_generation_prompt = f"Generate Python code to draw a graph using Matplotlib for the following data:\n{df.head()}"
+            if debug_mode:
+                print(f"Debug: Code generation prompt: {code_generation_prompt}")
             code_response = model.generate_code(code_generation_prompt)
             code = code_response['query']
 
             # Execute the generated Python code
+            if debug_mode:
+                print(f"Debug: Executing generated code: {code}")
             graph_image, return_code = self.generate_graph(code, df)
             if return_code == 0:
                 return graph_image
