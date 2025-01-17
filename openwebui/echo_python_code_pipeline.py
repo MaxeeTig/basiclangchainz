@@ -2,7 +2,6 @@ from typing import List, Union, Generator, Iterator
 from schemas import OpenAIChatMessage
 import subprocess
 
-
 class Pipeline:
     def __init__(self):
         # Optionally, you can set the id and name of the pipeline.
@@ -48,5 +47,16 @@ class Pipeline:
         else:
 #            stdout, return_code = self.execute_python_code(user_message)
 
-            stdout = (f"<!DOCTYPE html>\n<html>\n<head>\n    <title>Hello World</title>\n</head>\n<body>\n    <h1>Hello, World!</h1>\n {user_message}</body>\n</html>")
-            return stdout
+            html_content = (
+                f"<!DOCTYPE html>\n"
+                f"<html>\n"
+                f"<head>\n"
+                f"    <title>Hello World</title>\n"
+                f"</head>\n"
+                f"<body>\n"
+                f"    <h1>Hello, World!</h1>\n"
+                f"    {user_message}\n"
+                f"</body>\n"
+                f"</html>"
+            )
+            return html_content
