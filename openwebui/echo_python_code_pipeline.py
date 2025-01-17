@@ -1,4 +1,4 @@
-from typing import List, Union, Generator, Iterator
+﻿from typing import List, Union, Generator, Iterator
 from schemas import OpenAIChatMessage
 import subprocess
 import os
@@ -8,9 +8,11 @@ import base64
 class Pipeline:
     def __init__(self):
         # Optionally, you can set the id and name of the pipeline.
-        # Best practice is to not specify the id so that it can be automatically inferred from the filename, so that users can install multiple versions of the same pipeline.
+        # Best practice is to not specify the id so that it can be automatically inferred from the filename, so that
+users can install multiple versions of the same pipeline.
         # The identifier must be unique across all pipelines.
-        # The identifier must be an alphanumeric string that can include underscores or hyphens. It cannot contain spaces, special characters, slashes, or backslashes.
+        # The identifier must be an alphanumeric string that can include underscores or hyphens. It cannot contain
+spaces, special characters, slashes, or backslashes.
         # self.id = "python_code_pipeline"
         self.name = "ECHO Python Code Pipeline"
         pass
@@ -64,7 +66,15 @@ class Pipeline:
                 # Encode the image as base64
                 buffer.seek(0)
                 image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-                # Store the image base64 in the result variable
-                result = image_base64
+                # Generate HTML content to display the image
+                html_content = f'''
+                <div>
+                    <p>Hello</p>
+                    <img src="data:image/jpeg;base64,{image_base64}" alt="Elk Image" style="max-width:100%;">
+                </div>
+                '''
+                # Store the HTML content in the result variable
+                result = html_content
 
             return result
+
