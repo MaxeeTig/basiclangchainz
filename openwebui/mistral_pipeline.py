@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 # Set DEBUG to True to enable detailed debugging output
 DEBUG = True
 
-class Pipe:
+class Pipeline:
     class Valves(BaseModel):
         """Configuration for Mistral API."""
         MISTRAL_API_BASE_URL: str = Field(default="https://api.mistral.ai/v1")
@@ -72,11 +72,11 @@ class Pipe:
             self._debug(f"Failed to fetch models: {e}")
             return [{"id": "mistral", "name": str(e)}]
 
-    def pipes(self) -> List[dict]:
+    def pipelines(self) -> List[dict]:
         """Returns a list of available models."""
         return self.get_mistral_models()
 
-    def pipe(self, body: dict) -> Union[str, Generator[str, None, None]]:
+    def pipeline(self, body: dict) -> Union[str, Generator[str, None, None]]:
         """Handles a single request to the pipe."""
         try:
             model = body["model"].removeprefix("mistral.")
