@@ -47,16 +47,6 @@ class Pipeline:
         else:
 #            stdout, return_code = self.execute_python_code(user_message)
 
-            html_content = (
-                f"<!DOCTYPE html>\n"
-                f"<html>\n"
-                f"<head>\n"
-                f"    <title>Hello World</title>\n"
-                f"</head>\n"
-                f"<body>\n"
-                f"    <h1>Hello, World!</h1>\n"
-                f"    {user_message}\n"
-                f"</body>\n"
-                f"</html>"
-            )
-            return html_content
+	result = 	
+
+            return result
