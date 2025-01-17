@@ -29,11 +29,11 @@ def main():
     db_uri = (f"mysql+pymysql://{db_config['user']}:{db_config['password']}@{db_config['host']}/{db_config['database']}")
 
 # Option: Define particular tables to get info about
-    tables = ['operations','mcc']
-    table_info, db_info = get_database_info(db_uri, tables)
+#    tables = ['customers','mcc']
+#    table_info, db_info = get_database_info(db_uri, tables)
 
 # Get the database information
-#    table_info, db_info = get_database_info(db_uri)
+    table_info, db_info = get_database_info(db_uri)
 
 # Print the database info on the screen
     print(f"Here is info about tables: {table_info}")
