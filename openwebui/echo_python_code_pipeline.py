@@ -1,4 +1,4 @@
-﻿from typing import List, Union, Generator, Iterator
+from typing import List, Union, Generator, Iterator
 from schemas import OpenAIChatMessage
 import subprocess
 import os
@@ -9,10 +9,10 @@ class Pipeline:
     def __init__(self):
         # Optionally, you can set the id and name of the pipeline.
         # Best practice is to not specify the id so that it can be automatically inferred from the filename, so that
-users can install multiple versions of the same pipeline.
+        # users can install multiple versions of the same pipeline.
         # The identifier must be unique across all pipelines.
         # The identifier must be an alphanumeric string that can include underscores or hyphens. It cannot contain
-spaces, special characters, slashes, or backslashes.
+        # spaces, special characters, slashes, or backslashes.
         # self.id = "python_code_pipeline"
         self.name = "ECHO Python Code Pipeline"
         pass
@@ -43,14 +43,14 @@ spaces, special characters, slashes, or backslashes.
         # This is where you can add your custom pipelines like RAG.
         print(f"pipe:{__name__}")
 
-#        print(messages)
+        #        print(messages)
         print(user_message)
 
         if body.get("title", False):
             print("Title Generation")
             return "TEST Python Code Pipeline"
         else:
-#            stdout, return_code = self.execute_python_code(user_message)
+            #            stdout, return_code = self.execute_python_code(user_message)
 
             # Get the current directory
             current_directory = os.getcwd()
@@ -69,7 +69,7 @@ spaces, special characters, slashes, or backslashes.
                 # Generate HTML content to display the image
                 html_content = f'''
                 <div>
-                    <p>Hello</p>
+                    <p>Hello 👋</p>
                     <img src="data:image/jpeg;base64,{image_base64}" alt="Elk Image" style="max-width:100%;">
                 </div>
                 '''
@@ -77,4 +77,3 @@ spaces, special characters, slashes, or backslashes.
                 result = html_content
 
             return result
-
