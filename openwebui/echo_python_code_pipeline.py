@@ -2,6 +2,8 @@ from typing import List, Union, Generator, Iterator
 from schemas import OpenAIChatMessage
 import subprocess
 import os
+from io import BytesIO
+import base64
 
 class Pipeline:
     def __init__(self):
@@ -56,9 +58,13 @@ class Pipeline:
             # Open the file elk_image.jpg from the current directory
             file_path = os.path.join(current_directory, 'elk_image.jpg')
             with open(file_path, 'rb') as file:
-                # Read the file contents as bytes
-                image_bytes = file.read()
-                # Store the image bytes in the result variable
-                result = image_bytes
+                # Save the image to a BytesIO object
+                buffer = BytesIO()
+                buffer.write(file.read())
+                # Encode the image as base64
+                buffer.seek(0)
+                image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+                # Store the image base64 in the result variable
+                result = image_base64
 
             return result
