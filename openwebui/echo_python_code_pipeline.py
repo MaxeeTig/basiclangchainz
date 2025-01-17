@@ -1,6 +1,7 @@
 from typing import List, Union, Generator, Iterator
 from schemas import OpenAIChatMessage
 import subprocess
+import os
 
 class Pipeline:
     def __init__(self):
@@ -47,6 +48,11 @@ class Pipeline:
         else:
 #            stdout, return_code = self.execute_python_code(user_message)
 
-	result = 	
+            # Get the current directory
+            current_directory = os.getcwd()
+            # Print the current directory
+            print(f"Current Directory: {current_directory}")
+            # Store the current directory in the result variable
+            result = current_directory
 
             return result
