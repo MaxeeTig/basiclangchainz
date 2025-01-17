@@ -15,7 +15,6 @@ from pydantic import BaseModel, Field
 # Set DEBUG to True to enable detailed debugging output
 DEBUG = True
 
-
 class Pipe:
     class Valves(BaseModel):
         """Configuration for Mistral API."""
