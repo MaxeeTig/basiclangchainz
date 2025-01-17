@@ -76,7 +76,9 @@ class Pipeline:
         """Returns a list of available models."""
         return self.get_mistral_models()
 
-    def pipeline(self, body: dict) -> Union[str, Generator[str, None, None]]:
+    def pipe(
+        self, user_message: str, model_id: str, messages: List[dict], body: dict
+    ) -> Union[str, Generator, Iterator]:
         """Handles a single request to the pipe."""
         try:
             model = body["model"].removeprefix("mistral.")
