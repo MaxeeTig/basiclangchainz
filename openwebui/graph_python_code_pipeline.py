@@ -185,9 +185,10 @@ Generate the Python code based on the provided parameters.
             "result": "",
             "answer": ""
         }
+        structured_llm = self.model.with_structured_output(CodeOutput)
 
-        state = self.code_writer.write_code(state, df)
-        code = state['code']['query']
+        code_response = structured_llm.invoke(prompt)
+        code = code_response['query']
 
         # Execute the generated Python code
         if debug_mode:
