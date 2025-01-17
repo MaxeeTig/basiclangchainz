@@ -13,7 +13,6 @@ import io
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from agents import PythonCodeWriterCluster
 
 # Global debug mode variable
 debug_mode = True
@@ -41,7 +40,6 @@ class Pipeline:
     def __init__(self):
         self.name = "Cluster Code Assistant"
         self.model = model  # Ensure the model is accessible within the class
-        self.code_writer = PythonCodeWriterCluster(model=model)
 
     async def on_startup(self):
         if debug_mode:
