@@ -52,7 +52,13 @@ class Pipeline:
             current_directory = os.getcwd()
             # Print the current directory
             print(f"Current Directory: {current_directory}")
-            # Store the current directory in the result variable
-            result = current_directory
+
+            # Open the file elk_image.jpg from the current directory
+            file_path = os.path.join(current_directory, 'elk_image.jpg')
+            with open(file_path, 'rb') as file:
+                # Read the file contents as bytes
+                image_bytes = file.read()
+                # Store the image bytes in the result variable
+                result = image_bytes
 
             return result
