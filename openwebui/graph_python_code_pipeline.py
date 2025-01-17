@@ -139,6 +139,32 @@ df_cleaned = df.drop(columns=['column1','column2']) where column1, column2, colu
 ### DataFrame Columns:
 {columns}
 
+### Example:
+Given the parameters:
+- `features`: ['feature1', 'feature2']
+- `n_clusters`: 3
+- `algorithm`: 'kmeans'
+- `title`: 'Customer Segmentation'
+
+The generated code should look like this:
+```python
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+# Assuming df is already defined and contains the data
+features = df[['feature1', 'feature2']]
+kmeans = KMeans(n_clusters=3)
+kmeans.fit(features)
+labels = kmeans.labels_
+
+plt.figure(figsize=(10, 6))
+plt.scatter(features['feature1'], features['feature2'], c=labels, cmap='viridis')
+plt.title('Customer Segmentation')
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.show()
+```
+
 ### Task:
 Generate the Python code based on the provided parameters.
 """
