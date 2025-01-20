@@ -217,13 +217,6 @@ AVOID the following pitfalls:
             print(f"Debug: SQL query result: {df.head()}")
         return df
 
-    def interpret_query(self, user_message):
-        nlp = pipeline("text-classification", model="distilbert-base-uncased-finetuned-sst-2-english")
-        result = nlp(user_message)
-        if debug_mode:
-            print(f"Debug: Interpretation: {result}")
-        return result[0]['label']
-
     def map_query_to_data(self, label):
         if 'Line Chart' in label:
             return self.generate_line_chart
@@ -284,11 +277,11 @@ AVOID the following pitfalls:
         # Execute SQL query
         df = self.execute_query(query_output)
 
-        # Interpret user query
-        label = self.interpret_query(user_message)
-
         # Map query to data
-        graph_function = self.map_query_to_data(label)
+        graph_function = self.map_query_to_data(query_output['graph_type'])
+
+        if graph_function is None:
+            return "Unsupported graph type"
 
         # Execute selected graph drawing function
         graph_function(df, x_col='oper_date', y_col='oper_amount_amount_value')
