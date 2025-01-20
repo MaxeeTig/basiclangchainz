@@ -1,3 +1,4 @@
+from functools import partial
 from typing_extensions import TypedDict, Annotated
 from typing import List, Union, Generator, Iterator
 import subprocess
@@ -12,7 +13,7 @@ import seaborn as sns
 import io
 import os
 from transformers import pipeline
-import base64 
+import base64
 
 # Global debug mode variable
 debug_mode = True
@@ -220,11 +221,11 @@ AVOID the following pitfalls:
 
     def map_query_to_data(self, label):
         if 'Line Chart' in label:
-            return self.generate_line_chart
+            return partial(self.generate_line_chart)
         elif 'Bar Chart' in label:
-            return self.generate_bar_chart
+            return partial(self.generate_bar_chart)
         elif 'Pie Chart' in label:
-            return self.generate_pie_chart
+            return partial(self.generate_pie_chart)
         # Add more mappings as needed
         else:
             return None
@@ -292,7 +293,10 @@ AVOID the following pitfalls:
             return "DataFrame does not have enough columns to generate the graph."
 
         # Execute selected graph drawing function
-        graph_function(df, x_col=x_col, y_col=y_col)
+        if query_output['graph_type'] == 'Pie Chart':
+            graph_function(df, col=x_col)
+        else:
+            graph_function(df, x_col=x_col, y_col=y_col)
 
         # Read the image file into a bytes buffer
         with open('graph.png', 'rb') as f:
@@ -302,6 +306,7 @@ AVOID the following pitfalls:
         image_base64 = base64.b64encode(image_data).decode('utf-8')
 
         # Remove the local file
-        #os.remove('graph.png')
+        os.remove('graph.png')
 
+        # Return the base64 string embedded in HTML
         return f"```html\n<div><img src='data:image/png;base64,{image_base64}' alt='Graph'></div>\n```"
