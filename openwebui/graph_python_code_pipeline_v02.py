@@ -209,6 +209,7 @@ AVOID the following pitfalls:
         query = query_output['query']
         # Replace %Y with %%Y to escape it for pymysql
         query = query.replace('%Y', '%%Y')
+        query = query.replace('%m', '%%m')
         if debug_mode:
             print(f"Debug: Executing SQL query: {query}")
         df = pd.read_sql(query, engine)
