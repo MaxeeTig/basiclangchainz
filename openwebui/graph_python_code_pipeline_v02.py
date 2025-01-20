@@ -228,7 +228,7 @@ AVOID the following pitfalls:
         else:
             return None
 
-    def generate_line_chart(df, x_col, y_col):
+    def generate_line_chart(self, df, x_col, y_col):
         """
         Generate a line chart from a DataFrame.
 
@@ -283,8 +283,15 @@ AVOID the following pitfalls:
         if graph_function is None:
             return "Unsupported graph type"
 
+        # Determine column names dynamically
+        x_col = df.columns[0] if len(df.columns) > 0 else None
+        y_col = df.columns[1] if len(df.columns) > 1 else None
+
+        if x_col is None or y_col is None:
+            return "DataFrame does not have enough columns to generate the graph."
+
         # Execute selected graph drawing function
-        graph_function(df, x_col='oper_date', y_col='oper_amount_amount_value')
+        graph_function(df, x_col=x_col, y_col=y_col)
 
         # Read the image file into a bytes buffer
         with open('graph.png', 'rb') as f:
