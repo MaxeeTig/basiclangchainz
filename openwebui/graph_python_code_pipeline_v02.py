@@ -19,7 +19,7 @@ debug_mode = True
 class QueryOutput(TypedDict):
     """Generated SQL query and graph type."""
     query: Annotated[str, ..., "Syntactically valid SQL query."]
-    graph_type: Annotated[str, ..., "Graph type that the user wants to create."]    
+    graph_type: Annotated[str, ..., "Graph type that the user wants to create."]
 
 # Database connection parameters
 db_config = {
@@ -50,14 +50,15 @@ class Pipeline:
         if debug_mode:
             print(f"Debug: on_shutdown:{__name__}")
 
-    def validate_query(self, state: State):
-        query = state['query']['query']
-    if debug_mode:
-        print(f"Debug: validating SQL: {query}")
-    try:
-        result = self.db.run(query)
+    def validate_query(self, query_output):
+        """Validate SQL query."""
+        query = query_output['query']
+        if debug_mode:
+            print(f"Debug: validating SQL: {query}")
+        try:
+            self.db.run(query)
             return True, None
-    except Exception as e:
+        except Exception as e:
             return False, str(e)
 
     def write_query(self, user_message, max_attempts=3):
@@ -101,7 +102,7 @@ Follow these steps in order:
 1.3. DETERMINE any conditions or filters that need to be applied (e.g., WHERE clauses).
 1.4. ALWAYS use WILDCARDS when USER provides particular names or strings in query (e.g. user: magnit, search for merchant name = %magnit%)
 1.5. IDENTIFY TYPE OF GRAPH WHICH USER WANTS TO DRAW AND PUT IT IN THE STRUCTURED OUTPUT IN 'graph_type' dictionary item
-1.6. IF USER HAVE NOT PROVIDED TYPE OF GRAPH SUGGEST OPTION THE BEST SUITE USER NEEDS (e.g: Bar Chart,  Line Chart, Pie Chart, Scatter Plot, 
+1.6. IF USER HAVE NOT PROVIDED TYPE OF GRAPH SUGGEST OPTION THE BEST SUITE USER NEEDS (e.g: Bar Chart,  Line Chart, Pie Chart, Scatter Plot,
 Histogram, Heatmap)
 
 2. **CONSTRUCT THE SQL QUERY:**
@@ -116,7 +117,7 @@ Histogram, Heatmap)
 3.2. PROVIDE a brief explanation of how the query was constructed and why certain choices were made.
 3.3. PRESENT the final SQL query to the user.
 3.4. IDENTIFY type of chart on user query or that THE BEST SUITE USER NEEDS
-3.5. INCLUDE type of chart in response as separate IN 'graph_type' dictionary item 
+3.5. INCLUDE type of chart in response as separate IN 'graph_type' dictionary item
 
 ###What Not To Do###
 AVOID the following pitfalls:
@@ -134,34 +135,34 @@ AVOID the following pitfalls:
 "Draw line chart of operations counts by month."
 **SQL Query Generation:**
 1. **Understanding the User Query:**
-- Task: SELECT operations 
+- Task: SELECT operations
 - Table: operations
 - Condition: all operations
 - Group: GROUP operation_id by month
 - Summary: count number of operations
 2. **Constructing the SQL Query:**
-- SELECT operation_id from operations 
+- SELECT operation_id from operations
 - GROUP BY month with date conversion
-- SORT ASCENDING 
+- SORT ASCENDING
 **Final SQL Query:** "SELECT DATE_FORMAT(oper_date, '%Y-%m') AS month, COUNT(*) AS operation_count FROM operations GROUP BY month ORDER BY month ASC;"
 3. **Understand graph type**
 - IF user mentioned graph type in query identify graph type
 - place graph type in the answer in structured output to 'graph_type' dictionary item
 - IF user have not specified graph type in query suggest suitable graph type
-**Final Answer:** 'graph_type': 'Line Chart' 
+**Final Answer:** 'graph_type': 'Line Chart'
 
 **User Query:**
 "show me pie chart diagram of distribution of my customers by gender"
 **SQL Query Generation:**
 1. **Understanding the User Query:**
-- Task: SELECT customers 
-- Tables: customers 
-- Conditions: all data 
+- Task: SELECT customers
+- Tables: customers
+- Conditions: all data
 - GROUP by gender
-- Summary: count number of customers of each gender and 'none'  
+- Summary: count number of customers of each gender and 'none'
 2. **Constructing the SQL Query:**
 - SELECT customer_person_gender.
-- GROUP by customer_person_gender 
+- GROUP by customer_person_gender
 - SUM UP records to find total number SELECT count(*)
 **Final SQL Query:**
  "SELECT customer_person_gender, COUNT(*) AS customer_count FROM customers GROUP BY customer_person_gender;"
@@ -169,7 +170,7 @@ AVOID the following pitfalls:
 - IF user mentioned graph type in query identify graph type
 - place graph type in the answer in structured output to 'graph_type' dictionary item
 - IF user have not specified graph type in query suggest suitable graph type
-**Final Answer:** 'graph_type': 'Pie Chart' 
+**Final Answer:** 'graph_type': 'Pie Chart'
  '''
 
         query_prompt_template = ChatPromptTemplate([
@@ -248,7 +249,6 @@ AVOID the following pitfalls:
         plt.savefig('line_chart.png')
         plt.close()
 
-
     def generate_bar_chart(self, df, x_col, y_col):
         plt.figure(figsize=(10, 6))
         sns.barplot(data=df, x=x_col, y=y_col)
@@ -272,6 +272,11 @@ AVOID the following pitfalls:
 
         # Write SQL query
         query_output = self.write_query(user_message)
+
+        # Validate SQL query
+        is_valid, error_message = self.validate_query(query_output)
+        if not is_valid:
+            return f"Invalid SQL query: {error_message}"
 
         # Execute SQL query
         df = self.execute_query(query_output)
