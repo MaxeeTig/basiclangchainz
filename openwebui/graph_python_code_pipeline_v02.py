@@ -228,6 +228,10 @@ AVOID the following pitfalls:
             return partial(self.generate_pie_chart)
         elif 'Scatter Plot' in label:
             return partial(self.generate_scatter_plot)
+        elif 'Histogram' in label:
+            return partial(self.generate_histogram)
+        elif 'Heatmap' in label:
+            return partial(self.generate_heatmap)
         # Add more mappings as needed
         else:
             return None
@@ -283,6 +287,23 @@ AVOID the following pitfalls:
         plt.savefig('scatter_plot.png')
         plt.close()
 
+    def generate_histogram(self, df, col, bins=30):
+        plt.figure(figsize=(10, 6))
+        sns.histplot(df[col], bins=bins, kde=True)
+        plt.title(f'Histogram of {col}')
+        plt.xlabel(col)
+        plt.ylabel('Frequency')
+        plt.savefig('histogram.png')
+        plt.close()
+
+    def generate_heatmap(self, df, x_col, y_col):
+        plt.figure(figsize=(10, 6))
+        pivot_table = df.pivot_table(index=x_col, columns=y_col, aggfunc='size', fill_value=0)
+        sns.heatmap(pivot_table, annot=True, fmt='d', cmap='YlGnBu')
+        plt.title(f'Heatmap of {x_col} by {y_col}')
+        plt.savefig('heatmap.png')
+        plt.close()
+
     def pipe(
         self, user_message: str, model_id: str, messages: List[dict], body: dict
     ) -> Union[str, Generator, Iterator]:
@@ -314,18 +335,30 @@ AVOID the following pitfalls:
         # Execute selected graph drawing function
         if query_output['graph_type'] == 'Pie Chart':
             graph_function(df, col=x_col)
+        elif query_output['graph_type'] == 'Histogram':
+            graph_function(df, col=x_col)
         else:
             graph_function(df, x_col=x_col, y_col=y_col)
 
+        # Determine the filename based on the graph type
+        if query_output['graph_type'] == 'Scatter Plot':
+            filename = 'scatter_plot.png'
+        elif query_output['graph_type'] == 'Histogram':
+            filename = 'histogram.png'
+        elif query_output['graph_type'] == 'Heatmap':
+            filename = 'heatmap.png'
+        else:
+            filename = 'graph.png'
+
         # Read the image file into a bytes buffer
-        with open('graph.png', 'rb') as f:
+        with open(filename, 'rb') as f:
             image_data = f.read()
 
         # Convert the image data to a base64 string
         image_base64 = base64.b64encode(image_data).decode('utf-8')
 
         # Remove the local file
-        os.remove('graph.png')
+        os.remove(filename)
 
         # Return the base64 string embedded in HTML
         return f"```html\n<div><img src='data:image/png;base64,{image_base64}' alt='Graph'></div>\n```"
