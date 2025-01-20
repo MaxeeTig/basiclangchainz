@@ -226,6 +226,8 @@ AVOID the following pitfalls:
             return partial(self.generate_bar_chart)
         elif 'Pie Chart' in label:
             return partial(self.generate_pie_chart)
+        elif 'Scatter Plot' in label:
+            return partial(self.generate_scatter_plot)
         # Add more mappings as needed
         else:
             return None
@@ -262,6 +264,23 @@ AVOID the following pitfalls:
         plt.title(f'Pie Chart of {col}')
         plt.ylabel('')
         plt.savefig('graph.png')
+        plt.close()
+
+    def generate_scatter_plot(self, df, x_col, y_col):
+        """
+        Generate a scatter plot from a DataFrame.
+
+        Parameters:
+        df (pd.DataFrame): The DataFrame containing the data.
+        x_col (str): The column name for the x-axis.
+        y_col (str): The column name for the y-axis.
+        """
+        plt.figure(figsize=(10, 6))
+        sns.scatterplot(data=df, x=x_col, y=y_col)
+        plt.title(f'Scatter Plot of {y_col} by {x_col}')
+        plt.xlabel(x_col)
+        plt.ylabel(y_col)
+        plt.savefig('scatter_plot.png')
         plt.close()
 
     def pipe(
