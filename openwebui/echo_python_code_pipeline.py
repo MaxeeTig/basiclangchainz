@@ -67,11 +67,13 @@ class Pipeline:
                 buffer.seek(0)
                 image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
                 # Generate HTML content to display the image
-                html_content = f'''
+                html_content = """
+                '''html
                 <div>
-                    <p>Hello 👋</p>
-                    <img src="data:image/jpeg;base64,{image_base64}" alt="Elk Image" style="max-width:100%;">
+                   	 <p>Hello</p>
+                    <img src="data:image/jpeg;"elk_image.jpg" alt="Elk Image" style="max-width:100%;">
                 </div>
+                """
                 '''
                 # Store the HTML content in the result variable
                 result = html_content
