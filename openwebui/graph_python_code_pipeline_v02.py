@@ -236,7 +236,7 @@ AVOID the following pitfalls:
         else:
             return None
 
-    def generate_line_chart(self, df, x_col, y_col):
+    def generate_line_chart(self, df, x_col, y_col, graph_type):
         """
         Generate a line chart from a DataFrame.
 
@@ -250,7 +250,7 @@ AVOID the following pitfalls:
         plt.title(f'Line Chart of {y_col} by {x_col}')
         plt.xlabel(x_col)
         plt.ylabel(y_col)
-        plt.savefig('graph.png')
+        plt.savefig(f'{graph_type}.png')
         plt.close()
 
     def generate_bar_chart(self, df, x_col, y_col):
@@ -338,7 +338,7 @@ AVOID the following pitfalls:
         elif query_output['graph_type'] == 'Histogram':
             graph_function(df, col=x_col)
         else:
-            graph_function(df, x_col=x_col, y_col=y_col)
+            graph_function(df, x_col=x_col, y_col=y_col, graph_type=query_output['graph_type'])
 
         # Determine the filename based on the graph type
         if query_output['graph_type'] == 'Scatter Plot':
@@ -348,7 +348,7 @@ AVOID the following pitfalls:
         elif query_output['graph_type'] == 'Heatmap':
             filename = 'heatmap.png'
         else:
-            filename = 'graph.png'
+            filename = f"{query_output['graph_type']}.png"
 
         # Read the image file into a bytes buffer
         with open(filename, 'rb') as f:
