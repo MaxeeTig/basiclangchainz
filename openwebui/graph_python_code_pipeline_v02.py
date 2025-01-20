@@ -207,6 +207,8 @@ AVOID the following pitfalls:
     def execute_query(self, query_output):
         """Execute SQL query."""
         query = query_output['query']
+        # Replace %Y with %%Y to escape it for pymysql
+        query = query.replace('%Y', '%%Y')
         if debug_mode:
             print(f"Debug: Executing SQL query: {query}")
         df = pd.read_sql(query, engine)
