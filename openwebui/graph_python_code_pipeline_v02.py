@@ -12,6 +12,7 @@ import seaborn as sns
 import io
 import os
 from transformers import pipeline
+import base64 
 
 # Global debug mode variable
 debug_mode = True
@@ -242,7 +243,7 @@ AVOID the following pitfalls:
         plt.title(f'Line Chart of {y_col} by {x_col}')
         plt.xlabel(x_col)
         plt.ylabel(y_col)
-        plt.savefig('line_chart.png')
+        plt.savefig('graph.png')
         plt.close()
 
     def generate_bar_chart(self, df, x_col, y_col):
@@ -297,7 +298,10 @@ AVOID the following pitfalls:
         with open('graph.png', 'rb') as f:
             image_data = f.read()
 
+        # Convert the image data to a base64 string
+        image_base64 = base64.b64encode(image_data).decode('utf-8')
+
         # Remove the local file
         #os.remove('graph.png')
 
-        return image_data
+        return f"```html\n<div><img src='data:image/png;base64,{image_base64}' alt='Graph'></div>\n```"
