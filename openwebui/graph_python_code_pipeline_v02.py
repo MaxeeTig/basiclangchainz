@@ -17,8 +17,9 @@ from transformers import pipeline
 debug_mode = True
 
 class QueryOutput(TypedDict):
-    """Generated SQL query."""
+    """Generated SQL query and graph type."""
     query: Annotated[str, ..., "Syntactically valid SQL query."]
+    graph_type: Annotated[str, ..., "Graph type that the user wants to create."]    
 
 # Database connection parameters
 db_config = {
@@ -49,6 +50,16 @@ class Pipeline:
         if debug_mode:
             print(f"Debug: on_shutdown:{__name__}")
 
+    def validate_query(self, state: State):
+        query = state['query']['query']
+    if debug_mode:
+        print(f"Debug: validating SQL: {query}")
+    try:
+        result = self.db.run(query)
+            return True, None
+    except Exception as e:
+            return False, str(e)
+
     def write_query(self, user_message, max_attempts=3):
         """Generate SQL query to fetch information."""
 
@@ -66,6 +77,8 @@ USE CORRECT RELATIONS BETWEEN COLUMS AND TABLES
 USE ONLY RELEVANT COLUMNS RELATED TO USER QUERY
 IF REQUIRED SORT DATA IN THE ORDER ASCOR DESC (E.G. TO SHOW MOST FRESH OPERATIONS BY DATE)
 CREATE SYNTACTICALLY CORRECT DIALECT: {dialect} QUERY TO HELP USER FIND THE ANSWER
+THIS QUERY WILL BE USED FOR DIFFERENT GRAPHS DRAWING
+SELECTED DATA WILL BE PLACED TO PANDAS DATAFRAME
 
 ###USER QUERY###
 USER QUERY: {input}
@@ -87,6 +100,9 @@ Follow these steps in order:
 1.2. IDENTIFY the relevant tables and columns mentioned or implied in the query.
 1.3. DETERMINE any conditions or filters that need to be applied (e.g., WHERE clauses).
 1.4. ALWAYS use WILDCARDS when USER provides particular names or strings in query (e.g. user: magnit, search for merchant name = %magnit%)
+1.5. IDENTIFY TYPE OF GRAPH WHICH USER WANTS TO DRAW AND PUT IT IN THE STRUCTURED OUTPUT IN 'graph_type' dictionary item
+1.6. IF USER HAVE NOT PROVIDED TYPE OF GRAPH SUGGEST OPTION THE BEST SUITE USER NEEDS (e.g: Bar Chart,  Line Chart, Pie Chart, Scatter Plot, 
+Histogram, Heatmap)
 
 2. **CONSTRUCT THE SQL QUERY:**
 2.1. FORMULATE the basic SQL structure based on the identified task (e.g., SELECT FROM).
@@ -99,6 +115,8 @@ Follow these steps in order:
 3.1. REVIEW the query for correctness and optimization.
 3.2. PROVIDE a brief explanation of how the query was constructed and why certain choices were made.
 3.3. PRESENT the final SQL query to the user.
+3.4. IDENTIFY type of chart on user query or that THE BEST SUITE USER NEEDS
+3.5. INCLUDE type of chart in response as separate IN 'graph_type' dictionary item 
 
 ###What Not To Do###
 AVOID the following pitfalls:
@@ -113,33 +131,46 @@ AVOID the following pitfalls:
 
 ###Few-Shot Example###
 **User Query:**
-"Show me all the orders from customers in New York."
+"Draw line chart of operations counts by month."
 **SQL Query Generation:**
 1. **Understanding the User Query:**
-- Task: SELECT orders
-- Table: Orders, Customers
-- Condition: Customers from New York
+- Task: SELECT operations 
+- Table: operations
+- Condition: all operations
+- Group: GROUP operation_id by month
+- Summary: count number of operations
 2. **Constructing the SQL Query:**
-- JOIN the Orders and Customers tables on the customer ID.
-- SELECT all order details where the customer's city is 'New York'.
-**Final SQL Query:** ```sql SELECT Orders.* FROM Orders JOIN Customers ON Orders.CustomerID = Customers.CustomerID WHERE Customers.City = 'New York';
+- SELECT operation_id from operations 
+- GROUP BY month with date conversion
+- SORT ASCENDING 
+**Final SQL Query:** "SELECT DATE_FORMAT(oper_date, '%Y-%m') AS month, COUNT(*) AS operation_count FROM operations GROUP BY month ORDER BY month ASC;"
+3. **Understand graph type**
+- IF user mentioned graph type in query identify graph type
+- place graph type in the answer in structured output to 'graph_type' dictionary item
+- IF user have not specified graph type in query suggest suitable graph type
+**Final Answer:** 'graph_type': 'Line Chart' 
 
 **User Query:**
-"give me the number of purchase transactions"
+"show me pie chart diagram of distribution of my customers by gender"
 **SQL Query Generation:**
 1. **Understanding the User Query:**
-- Task: SELECT transactions, synonym word 'operations'
-- Tables: operations, dict_table
-- Conditions: dictionary = 'purchase'
-- Summary: count number of operations
-
+- Task: SELECT customers 
+- Tables: customers 
+- Conditions: all data 
+- GROUP by gender
+- Summary: count number of customers of each gender and 'none'  
 2. **Constructing the SQL Query:**
-- SELECT from dict_table by given text_e = 'purchase' related dkey.
-- SELECT operations where oper_type = (selected dkey).
+- SELECT customer_person_gender.
+- GROUP by customer_person_gender 
 - SUM UP records to find total number SELECT count(*)
 **Final SQL Query:**
-'SELECT COUNT(*) FROM operations WHERE oper_type IN (SELECT dkey FROM dict_table WHERE text_e = 'Purchase');'
-'''
+ "SELECT customer_person_gender, COUNT(*) AS customer_count FROM customers GROUP BY customer_person_gender;"
+3. **Understand graph type**
+- IF user mentioned graph type in query identify graph type
+- place graph type in the answer in structured output to 'graph_type' dictionary item
+- IF user have not specified graph type in query suggest suitable graph type
+**Final Answer:** 'graph_type': 'Pie Chart' 
+ '''
 
         query_prompt_template = ChatPromptTemplate([
                     ("system", prompt_template),
@@ -185,14 +216,38 @@ AVOID the following pitfalls:
     def interpret_query(self, user_message):
         nlp = pipeline("text-classification", model="distilbert-base-uncased-finetuned-sst-2-english")
         result = nlp(user_message)
+        if debug_mode:
+            print(f"Debug: Interpretation: {result}")
         return result[0]['label']
 
     def map_query_to_data(self, label):
-        if 'bar chart' in label:
+        if 'Line Chart' in label:
+            return self.generate_line_chart
+        elif 'Bar Chart' in label:
             return self.generate_bar_chart
-        elif 'pie chart' in label:
+        elif 'Pie Chart' in label:
             return self.generate_pie_chart
         # Add more mappings as needed
+        else:
+            return None
+
+    def generate_line_chart(df, x_col, y_col):
+        """
+        Generate a line chart from a DataFrame.
+
+        Parameters:
+        df (pd.DataFrame): The DataFrame containing the data.
+        x_col (str): The column name for the x-axis.
+        y_col (str): The column name for the y-axis.
+        """
+        plt.figure(figsize=(10, 6))
+        sns.lineplot(data=df, x=x_col, y=y_col)
+        plt.title(f'Line Chart of {y_col} by {x_col}')
+        plt.xlabel(x_col)
+        plt.ylabel(y_col)
+        plt.savefig('line_chart.png')
+        plt.close()
+
 
     def generate_bar_chart(self, df, x_col, y_col):
         plt.figure(figsize=(10, 6))
@@ -235,6 +290,6 @@ AVOID the following pitfalls:
             image_data = f.read()
 
         # Remove the local file
-        os.remove('graph.png')
+        #os.remove('graph.png')
 
         return image_data
