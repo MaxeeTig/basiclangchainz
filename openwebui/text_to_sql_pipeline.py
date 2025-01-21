@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from langchain_community.utilities import SQLDatabase
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_mistralai import ChatMistralAI
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import ast
 from typing_extensions import TypedDict, Annotated
 from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
@@ -59,7 +59,7 @@ class Pipeline:
             print(f"Debug: Attempting to connect to MySQL database with credentials: {self.valves.DB_USER}, {self.valves.DB_PASSWORD}, {self.valves.DB_HOST}, {self.valves.DB_DATABASE}")
         try:
             with self.engine.connect() as connection:
-                connection.execute("SELECT 1")
+                connection.execute(text("SELECT 1"))
                 if debug_mode:
                     print("Debug: Successfully connected to MySQL database.")
         except Exception as e:
