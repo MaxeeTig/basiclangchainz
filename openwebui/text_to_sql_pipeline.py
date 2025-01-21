@@ -52,6 +52,17 @@ class Pipeline:
     def init_db_connection(self):
         # Update your DB connection string based on selected DB engine - current connection string is for MySQL
         self.engine = create_engine(f"mysql+pymysql://{self.valves.DB_USER}:{self.valves.DB_PASSWORD}@{self.valves.DB_HOST}/{self.valves.DB_DATABASE}")
+        if debug_mode:
+            print(f"Debug: Attempting to connect to MySQL database with credentials: {self.valves.DB_USER}, {self.valves.DB_PASSWORD}, {self.valves.DB_HOST}, {self.valves.DB_DATABASE}")
+        try:
+            with self.engine.connect() as connection:
+                connection.execute("SELECT 1")
+                if debug_mode:
+                    print("Debug: Successfully connected to MySQL database.")
+        except Exception as e:
+            if debug_mode:
+                print(f"Debug: Failed to connect to MySQL database. Error: {e}")
+            raise
         return self.engine
 
     async def on_startup(self):
