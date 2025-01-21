@@ -4,7 +4,7 @@ author: Maxim Tigulev
 date: 21 Jan 2025
 version: 1.2
 license: MIT
-requirements: langchain==0.3.1, langchain_core==0.3.7, langchain_openai==0.2.1, langchain_qdrant==0.2.0, langchain_text_splitters==0.3.0, pydantic==2.8.2
+requirements: langchain==0.3.1, langchain_core==0.3.7, langchain-mistralai==0.2.4, langchain_openai==0.2.1, langchain_qdrant==0.2.0, langchain_text_splitters==0.3.0, pydantic==2.8.2
 description: A pipeline for using text-to-SQL for retrieving relevant information from a database.
 """
 
