@@ -49,6 +49,9 @@ class Pipeline:
             }
         )
 
+        # Initialize the database connection
+        self.init_db_connection()
+
     def init_db_connection(self):
         # Update your DB connection string based on selected DB engine - current connection string is for MySQL
         self.engine = create_engine(f"mysql+pymysql://{self.valves.DB_USER}:{self.valves.DB_PASSWORD}@{self.valves.DB_HOST}/{self.valves.DB_DATABASE}")
