@@ -12,7 +12,7 @@ from sentence_transformers import SentenceTransformer
 from annoy import AnnoyIndex
 from typing import List, Dict, Union, Generator, Iterator
 import numpy as np
-from mistralai import Mistral
+#from mistralai import Mistral
 import os
 
 # Global debug mode variable
