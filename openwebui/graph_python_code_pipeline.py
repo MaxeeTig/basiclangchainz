@@ -277,21 +277,31 @@ AVOID the following pitfalls:
         plt.savefig(filename)
         plt.close()
         return filename
+    
+    def generate_pie_chart(df, col, graph_type, count_col=None):
+        """Generate a pie chart from a DataFrame.
+        Parameters:
+        df (pd.DataFrame): The DataFrame containing the data.
+        col (str): The column name for which to generate the pie chart.
+        count_col (str): Optional column name for weighting the pie chart.
+        """
+        if col not in df.columns:
+            raise ValueError(f"Column '{col}' not found in DataFrame.")
 
-    def generate_pie_chart(self, df, col, graph_type):
-        plt.figure(figsize=(10, 6))
-        
-        # Print the column name being used
-        print(f"Debug pie_chart: Column being used: {col}")
+        if count_col:
+            if count_col not in df.columns:
+                raise ValueError(f"Column '{count_col}' not found in DataFrame.")
+            aggregated_data = df.groupby(col)[count_col].sum()
+            plt.figure(figsize=(10, 6))
+            aggregated_data.plot.pie(autopct='%1.1f%%', startangle=90)
+        else:
+            value_counts = df[col].value_counts()
+            plt.figure(figsize=(10, 6))
+            value_counts.plot.pie(autopct='%1.1f%%', startangle=90)
 
-        # Handle None values by replacing them with 'Unknown'
-        df[col] = df[col].fillna('Unknown')
-
-        # Plot the pie chart
-        df[col].value_counts().plot.pie(autopct='%1.1f%%')
         plt.title(f'Pie Chart of {col}')
         plt.ylabel('')
-
+        
         filename = f'{graph_type}.png'
         plt.savefig(filename)
         plt.close()
@@ -368,7 +378,7 @@ AVOID the following pitfalls:
 
         # Execute selected graph drawing function
         if query_output['graph_type'] == 'Pie Chart':
-            filename = graph_function(df, col=y_col, graph_type=query_output['graph_type'])
+            filename = graph_function(df, col=x_col, count_col=y_col, graph_type=query_output['graph_type'])
         elif query_output['graph_type'] == 'Histogram':
             filename = graph_function(df, col=x_col, graph_type=query_output['graph_type'])
         else:
