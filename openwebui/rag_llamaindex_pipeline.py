@@ -5,7 +5,6 @@ date: 2024-05-30
 version: 1.0
 license: MIT
 description: A pipeline for retrieving relevant information from a knowledge base using the Llama Index library.
-requirements: llama-index
 """
 import fitz  # PyMuPDF
 from sentence_transformers import SentenceTransformer
@@ -15,7 +14,7 @@ from typing import List, Dict, Union, Generator, Iterator
 import numpy as np
 from mistralai import Mistral
 import os
-from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
+#from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 
 # Global debug mode variable
 debug_mode = True
@@ -24,6 +23,7 @@ class Pipeline:
     def __init__(self):
         self.documents = None
         self.index = None
+        self.name = "Document RAG Search"
 
     async def on_startup(self):
         import os
@@ -46,11 +46,11 @@ class Pipeline:
         self.faiss_index = faiss.IndexFlatL2(dimension)
         self.metadata_dict = {}
 
-        from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
+        #from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
         if debug_mode:
             print("Debug: Reading docs...")
 
-        self.documents = SimpleDirectoryReader("./data").load_data()
+        #self.documents = SimpleDirectoryReader("./data").load_data()
 
         if debug_mode:
             print(f"Documents loaded: {len(self.documents)}")
@@ -58,7 +58,7 @@ class Pipeline:
         if debug_mode:
             print("Debug: Creating index...")
 
-        self.index = VectorStoreIndex.from_documents(self.documents)
+        #self.index = VectorStoreIndex.from_documents(self.documents)
 
         if debug_mode:
             print(f"Index created: {self.index is not None}")
@@ -140,7 +140,7 @@ class Pipeline:
         for index in indices[0]:
             rag_text += chunks[index] + "\n"
 
-        query_engine = self.index.as_query_engine(streaming=True)
-        response = query_engine.query(user_message)
+        #query_engine = self.index.as_query_engine(streaming=True)
+        #response = query_engine.query(user_message)
 
-        return response.response_gen
+        return rag_text
