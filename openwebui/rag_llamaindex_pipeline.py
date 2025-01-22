@@ -16,8 +16,13 @@ from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index import Document
 from llama_index import pdf_loader
 
+# Global debug mode variable
+debug_mode = True
+
 # Get API-KEY from OS Variable
 api_key = os.getenv("MISTRAL_API_KEY")
+if debug_mode:
+    print(f"API Key: {api_key}")
 model = "mistral-large-latest"
 client = Mistral(api_key=api_key)
 
@@ -33,8 +38,9 @@ def read_pdf(file_path: str):
 def call_llm(query, rag_text):
     system_prompt = f"You are professional analyst in bank card busines and respond to user's questions about documents. The most relevant parts of the document provided here: {rag_text}"
 
-    print("### Call LLM ")
-    print(f"User query: {query}")
+    if debug_mode:
+        print("### Call LLM ")
+        print(f"User query: {query}")
 
     full_prompt = f"{system_prompt}\n{query}"
 
@@ -64,6 +70,9 @@ class Pipeline:
         file_path = "./data/vau_users_guide.pdf"
         file_name = "vau_users_guide.pdf"
 
+        if debug_mode:
+            print(f"Reading PDF from: {file_path}")
+
         # Read the PDF file
         text = read_pdf(file_path)
 
@@ -86,8 +95,9 @@ class Pipeline:
         # This is where you can add your custom RAG pipeline.
         # Typically, you would retrieve relevant information from your knowledge base and synthesize it to generate a response.
 
-        print(messages)
-        print(user_message)
+        if debug_mode:
+            print(messages)
+            print(user_message)
 
         # Create the query engine
         query_engine = self.index.as_query_engine(streaming=True)
