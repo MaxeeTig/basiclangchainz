@@ -123,7 +123,7 @@ Histogram, Heatmap)
 2.3. ADD any necessary JOIN clauses if multiple tables are involved.
 2.4. USE aggregate functions or GROUP BY if the query requires summarization of data.
 2.5. OPTIMIZE the query by considering indexes, limiting results, or other performance enhancements.
-2.6. ATTENTION to columns order in query, for example for Pie Chart column with attribute (e.g customer_person_gender) goes first, count (e.g customer_count) goes second 
+2.6. ATTENTION to columns order in query, for example for Pie Chart column with attribute (e.g customer_person_gender) goes first, count (e.g customer_count) goes second
 
 3. **FINALIZE AND EXPLAIN:**
 3.1. REVIEW the query for correctness and optimization.
@@ -277,8 +277,8 @@ AVOID the following pitfalls:
         plt.savefig(filename)
         plt.close()
         return filename
-    
-    def generate_pie_chart(df, col, graph_type, count_col=None):
+
+    def generate_pie_chart(self, df, col, graph_type, count_col=None):
         """Generate a pie chart from a DataFrame.
         Parameters:
         df (pd.DataFrame): The DataFrame containing the data.
@@ -301,12 +301,11 @@ AVOID the following pitfalls:
 
         plt.title(f'Pie Chart of {col}')
         plt.ylabel('')
-        
+
         filename = f'{graph_type}.png'
         plt.savefig(filename)
         plt.close()
         return filename
-
 
     def generate_scatter_plot(self, df, x_col, y_col, graph_type):
         """
@@ -363,6 +362,9 @@ AVOID the following pitfalls:
         # Execute SQL query
         df = self.execute_query(query_output)
 
+        # Print the DataFrame head for debugging
+        print(f"Debug: DataFrame head:\n{df.head()}")
+
         # Map query to data
         graph_function = self.map_query_to_data(query_output['graph_type'])
 
@@ -372,6 +374,10 @@ AVOID the following pitfalls:
         # Determine column names dynamically
         x_col = df.columns[0] if len(df.columns) > 0 else None
         y_col = df.columns[1] if len(df.columns) > 1 else None
+
+        # Print the determined column names for debugging
+        print(f"Debug: Determined x_col: {x_col}")
+        print(f"Debug: Determined y_col: {y_col}")
 
         if x_col is None or y_col is None:
             return "DataFrame does not have enough columns to generate the graph."
