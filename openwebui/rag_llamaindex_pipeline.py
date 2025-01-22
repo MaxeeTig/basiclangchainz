@@ -15,6 +15,7 @@ from mistralai import Mistral
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index import Document
 from llama_index import pdf_loader
+import os
 
 # Global debug mode variable
 debug_mode = True
