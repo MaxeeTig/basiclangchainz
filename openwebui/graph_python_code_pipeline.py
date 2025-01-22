@@ -4,7 +4,7 @@ author: Maxim Tigulev
 date: 22 Jan 2025
 version: 1.2
 license: MIT
-requirements: langchain==0.3.1, langchain_core==0.3.7, langchain-mistralai==0.2.4, langchain_openai==0.2.1, langchain_qdrant==0.2.0, langchain_text_splitters==0.3.0, pydantic==2.8.2, pymysql==1.1.1
+requirements: langchain==0.3.8, langchain_core==0.3.21, langchain-mistralai==0.2.3, langchain_openai==0.2.9, langchain_text_splitters==0.3.2, pydantic==2.10.3, pymysql==1.1.1
 description: A pipeline for using LLM to build graphs on the basis of database information.
 """
 
