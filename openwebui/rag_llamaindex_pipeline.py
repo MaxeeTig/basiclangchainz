@@ -121,7 +121,7 @@ class Pipeline:
             chunk_id += 1
 
         # convert user query to vector
-        query_embedding = self.embed_query(user_input)
+        query_embedding = self.embed_query(user_message)
 
         # Search in the vector DB for the nearest neighbors
         k = 5  # Number of nearest neighbors to retrieve
