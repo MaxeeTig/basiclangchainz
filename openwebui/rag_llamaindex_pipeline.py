@@ -17,6 +17,7 @@ from mistralai import Mistral
 import os
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index import Document
+from llama_index import pdf_loader
 
 # Get API-KEY from OS Variable
 api_key = os.getenv("MISTRAL_API_KEY")
