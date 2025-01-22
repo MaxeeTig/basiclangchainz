@@ -286,6 +286,23 @@ AVOID the following pitfalls:
         plt.close()
         return filename
 
+    def generate_pie_chart(self, df, col, graph_type):
+        plt.figure(figsize=(10, 6))
+
+        # Handle None values by replacing them with 'Not specified'
+        df[col] = df[col].fillna('Not specified')
+
+        # Plot the pie chart
+        df[col].value_counts().plot.pie(autopct='%1.1f%%')
+        plt.title(f'Pie Chart of {col}')
+        plt.ylabel('')
+
+        filename = f'{graph_type}.png'
+        plt.savefig(filename)
+        plt.close()
+        return filename
+
+
     def generate_scatter_plot(self, df, x_col, y_col, graph_type):
         """
         Generate a scatter plot from a DataFrame.
