@@ -5,7 +5,7 @@ date: 22.01.2025
 version: 1.0
 license: MIT
 description: A pipeline for retrieving relevant information from PDF-documents using the Llama Index library.
-requirements: llama-index
+requirements: llama-index, sentence-transformers, numpy, mistralai, os
 """
 
 from typing import List, Union, Generator, Iterator
