@@ -123,6 +123,7 @@ Histogram, Heatmap)
 2.3. ADD any necessary JOIN clauses if multiple tables are involved.
 2.4. USE aggregate functions or GROUP BY if the query requires summarization of data.
 2.5. OPTIMIZE the query by considering indexes, limiting results, or other performance enhancements.
+2.6. ATTENTION to columns order in query, for example for Pie Chart column with attribute (e.g customer_person_gender) goes first, count (e.g customer_count) goes second 
 
 3. **FINALIZE AND EXPLAIN:**
 3.1. REVIEW the query for correctness and optimization.
@@ -130,6 +131,7 @@ Histogram, Heatmap)
 3.3. PRESENT the final SQL query to the user.
 3.4. IDENTIFY type of chart on user query or that THE BEST SUITE USER NEEDS
 3.5. INCLUDE type of chart in response as separate IN 'graph_type' dictionary item
+
 
 ###What Not To Do###
 AVOID the following pitfalls:
@@ -278,19 +280,12 @@ AVOID the following pitfalls:
 
     def generate_pie_chart(self, df, col, graph_type):
         plt.figure(figsize=(10, 6))
-        df[col].value_counts().plot.pie(autopct='%1.1f%%')
-        plt.title(f'Pie Chart of {col}')
-        plt.ylabel('')
-        filename = f'{graph_type}.png'
-        plt.savefig(filename)
-        plt.close()
-        return filename
+        
+        # Print the column name being used
+        print(f"Debug pie_chart: Column being used: {col}")
 
-    def generate_pie_chart(self, df, col, graph_type):
-        plt.figure(figsize=(10, 6))
-
-        # Handle None values by replacing them with 'Not specified'
-        df[col] = df[col].fillna('Not specified')
+        # Handle None values by replacing them with 'Unknown'
+        df[col] = df[col].fillna('Unknown')
 
         # Plot the pie chart
         df[col].value_counts().plot.pie(autopct='%1.1f%%')
@@ -373,7 +368,7 @@ AVOID the following pitfalls:
 
         # Execute selected graph drawing function
         if query_output['graph_type'] == 'Pie Chart':
-            filename = graph_function(df, col=x_col, graph_type=query_output['graph_type'])
+            filename = graph_function(df, col=y_col, graph_type=query_output['graph_type'])
         elif query_output['graph_type'] == 'Histogram':
             filename = graph_function(df, col=x_col, graph_type=query_output['graph_type'])
         else:
