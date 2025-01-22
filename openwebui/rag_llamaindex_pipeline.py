@@ -5,6 +5,7 @@ date: 22.01.2025
 version: 1.0
 license: MIT
 description: A pipeline for retrieving relevant information from PDF-documents using the Llama Index library.
+requirements: llama-index==0.12.1, sentence-transformers==3.3.1, mistralai==1.1.0
 """
 
 from typing import List, Union, Generator, Iterator
@@ -12,7 +13,6 @@ from schemas import OpenAIChatMessage
 from sentence_transformers import SentenceTransformer
 from mistralai import Mistral
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
-from llama_index import Document
 from llama_index import pdf_loader
 import os
 
