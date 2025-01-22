@@ -4,7 +4,7 @@ author: Maxim Tigulev
 date: 22 Jan 2025
 version: 1.2
 license: MIT
-requirements: langchain==0.3.1, langchain_core==0.3.7, langchain-mistralai==0.2.4, langchain_openai==0.2.1, langchain_text_splitters==0.3.0, pydantic==2.8.2, pymysql==1.1.1
+requirements: langchain==0.3.8, langchain_core==0.3.21, langchain-mistralai==0.2.3, langchain_openai==0.2.9, langchain_text_splitters==0.3.2, pydantic==2.10.3, pymysql==1.1.1
 description: A pipeline for using LLM to build graphs on the basis of database information.
 """
 
@@ -260,27 +260,33 @@ AVOID the following pitfalls:
         plt.title(f'Line Chart of {y_col} by {x_col}')
         plt.xlabel(x_col)
         plt.ylabel(y_col)
-        plt.savefig(f'{graph_type}.png')
+        filename = f'{graph_type}.png'
+        plt.savefig(filename)
         plt.close()
+        return filename
 
-    def generate_bar_chart(self, df, x_col, y_col):
+    def generate_bar_chart(self, df, x_col, y_col, graph_type):
         plt.figure(figsize=(10, 6))
         sns.barplot(data=df, x=x_col, y=y_col)
         plt.title(f'Bar Chart of {y_col} by {x_col}')
         plt.xlabel(x_col)
         plt.ylabel(y_col)
-        plt.savefig('graph.png')
+        filename = f'{graph_type}.png'
+        plt.savefig(filename)
         plt.close()
+        return filename
 
-    def generate_pie_chart(self, df, col):
+    def generate_pie_chart(self, df, col, graph_type):
         plt.figure(figsize=(10, 6))
         df[col].value_counts().plot.pie(autopct='%1.1f%%')
         plt.title(f'Pie Chart of {col}')
         plt.ylabel('')
-        plt.savefig('graph.png')
+        filename = f'{graph_type}.png'
+        plt.savefig(filename)
         plt.close()
+        return filename
 
-    def generate_scatter_plot(self, df, x_col, y_col):
+    def generate_scatter_plot(self, df, x_col, y_col, graph_type):
         """
         Generate a scatter plot from a DataFrame.
 
@@ -294,25 +300,31 @@ AVOID the following pitfalls:
         plt.title(f'Scatter Plot of {y_col} by {x_col}')
         plt.xlabel(x_col)
         plt.ylabel(y_col)
-        plt.savefig('scatter_plot.png')
+        filename = f'{graph_type}.png'
+        plt.savefig(filename)
         plt.close()
+        return filename
 
-    def generate_histogram(self, df, col, bins=30):
+    def generate_histogram(self, df, col, bins=30, graph_type):
         plt.figure(figsize=(10, 6))
         sns.histplot(df[col], bins=bins, kde=True)
         plt.title(f'Histogram of {col}')
         plt.xlabel(col)
         plt.ylabel('Frequency')
-        plt.savefig('histogram.png')
+        filename = f'{graph_type}.png'
+        plt.savefig(filename)
         plt.close()
+        return filename
 
-    def generate_heatmap(self, df, x_col, y_col):
+    def generate_heatmap(self, df, x_col, y_col, graph_type):
         plt.figure(figsize=(10, 6))
         pivot_table = df.pivot_table(index=x_col, columns=y_col, aggfunc='size', fill_value=0)
         sns.heatmap(pivot_table, annot=True, fmt='d', cmap='YlGnBu')
         plt.title(f'Heatmap of {x_col} by {y_col}')
-        plt.savefig('heatmap.png')
+        filename = f'{graph_type}.png'
+        plt.savefig(filename)
         plt.close()
+        return filename
 
     def pipe(
         self, user_message: str, model_id: str, messages: List[dict], body: dict
@@ -344,21 +356,11 @@ AVOID the following pitfalls:
 
         # Execute selected graph drawing function
         if query_output['graph_type'] == 'Pie Chart':
-            graph_function(df, col=x_col)
+            filename = graph_function(df, col=x_col, graph_type=query_output['graph_type'])
         elif query_output['graph_type'] == 'Histogram':
-            graph_function(df, col=x_col)
+            filename = graph_function(df, col=x_col, graph_type=query_output['graph_type'])
         else:
-            graph_function(df, x_col=x_col, y_col=y_col, graph_type=query_output['graph_type'])
-
-        # Determine the filename based on the graph type
-        if query_output['graph_type'] == 'Scatter Plot':
-            filename = 'scatter_plot.png'
-        elif query_output['graph_type'] == 'Histogram':
-            filename = 'histogram.png'
-        elif query_output['graph_type'] == 'Heatmap':
-            filename = 'heatmap.png'
-        else:
-            filename = f"{query_output['graph_type']}.png"
+            filename = graph_function(df, x_col=x_col, y_col=y_col, graph_type=query_output['graph_type'])
 
         # Read the image file into a bytes buffer
         with open(filename, 'rb') as f:
