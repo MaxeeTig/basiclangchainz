@@ -40,7 +40,7 @@ class Pipeline:
         file_path = "./data/vau_users_guide.pdf"
 
         if debug_mode:
-            print("Debug: Reading docs...")
+            print(f"Debug: Reading doc: {file_path}")
 
         # read PDF file
         doc_text = self.read_pdf(file_path)
