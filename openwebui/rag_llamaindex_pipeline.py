@@ -60,11 +60,6 @@ class Pipeline:
         self.index = None
 
     async def on_startup(self):
-        import os
-
-        # Set the OpenAI API key
-        os.environ["OPENAI_API_KEY"] = "your-api-key-here"
-
         # Specify the file path and name
         file_path = "./data/vau_users_guide.pdf"
         file_name = "vau_users_guide.pdf"
