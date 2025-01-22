@@ -15,6 +15,7 @@ from mistralai import Mistral
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index import pdf_loader
 import os
+import fitz  # PyMuPDF
 
 # Global debug mode variable
 debug_mode = True
@@ -28,7 +29,7 @@ client = Mistral(api_key=api_key)
 
 # Main Functions
 def read_pdf(file_path: str):
-    doc = pdf_loader(file_path)
+    doc = fitz.open(file_path)
     text = ""
     for page in doc:
         text += page.get_text()
