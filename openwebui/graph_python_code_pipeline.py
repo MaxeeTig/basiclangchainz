@@ -305,7 +305,7 @@ AVOID the following pitfalls:
         plt.close()
         return filename
 
-    def generate_histogram(self, df, col, bins=30, graph_type):
+    def generate_histogram(self, df, col, graph_type, bins=30):
         plt.figure(figsize=(10, 6))
         sns.histplot(df[col], bins=bins, kde=True)
         plt.title(f'Histogram of {col}')
