@@ -21,8 +21,6 @@ debug_mode = True
 class Pipeline:
     def __init__(self):
         self.name = "Document RAG Search"
-
-    async def on_startup(self):
         self.pdf_loader = fitz.open
         self.text_chunker = lambda text, chunk_size: [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
         self.embedding_generator = SentenceTransformer('all-MiniLM-L6-v2')
@@ -30,6 +28,7 @@ class Pipeline:
         self.annoy_index = AnnoyIndex(dimension, 'angular')
         self.metadata_dict = {}
 
+    async def on_startup(self):
         # Get API-KEY from OS Variable
         #api_key = os.getenv("MISTRAL_API_KEY")
         #model = "mistral-large-latest"
