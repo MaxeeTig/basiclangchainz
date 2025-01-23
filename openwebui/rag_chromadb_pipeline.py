@@ -13,8 +13,6 @@ from sentence_transformers import SentenceTransformer
 import chromadb
 from chromadb.config import Settings
 from typing import List, Dict, Union, Generator, Iterator
-from langchain_mistralai import ChatMistralAI
-from langchain_core.messages import HumanMessage, SystemMessage
 
 # Global debug mode variable
 debug_mode = True
@@ -23,13 +21,13 @@ class Pipeline:
     def __init__(self):
         self.name = "Document RAG Search"
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
-        self.llm = ChatMistralAI(model="mistral-large-latest")
         self.dim = 384
         self.client = chromadb.Client(Settings(chroma_server_host= "chromadb-engine",
                                 chroma_server_http_port="8000"
                                 ))
         self.collection = None
         self.text_chunks = {}
+        self.collection_name = "pdf_embeddings"
 
     async def on_startup(self):
         pdf_path = './data/vau_users_guide.pdf'
@@ -57,11 +55,23 @@ class Pipeline:
         if debug_mode:
             print("Debug: storing embeddings.")
         # Store embeddings in ChromaDB
-        self.store_embeddings(embeddings)
+        self.add_embeddings(embeddings)
 
     async def on_shutdown(self):
         # This function is called when the server is stopped.
         pass
+
+
+    def get_or_create_collection(self, name):
+            try:
+                collection = self.client.get_collection(name=name)
+                print(f"Collection '{name}' already exists.")
+                return collection, True
+            except Exception as e:
+                print(f"Collection '{name}' does not exist. Creating a new collection.")
+                collection = self.client.create_collection(name=name)
+                return collection, False
+        
 
     def read_pdf(self, pdf_path):
         with open(pdf_path, 'rb') as f:
@@ -81,40 +91,20 @@ class Pipeline:
         embeddings = self.model.encode(texts)
         return embeddings
 
-    def store_embeddings(self, embeddings):
-        # Create a ChromaDB collection
-        self.collection = self.client.create_collection(name="pdf_embeddings")
-
-        # Generate unique IDs for each embedding
-        ids = [str(i) for i in range(len(embeddings))]
-
-        # Insert embeddings into the collection
-        self.collection.add(embeddings=embeddings.tolist(), ids=ids)
+    
+    def add_embeddings(self, embeddings):
+        ids = [str(i) for i in range(len(embeddings))]    
+        if not self.collection_exists:
+            try:
+                self.collection.add(embeddings=embeddings.tolist(), ids=ids)
+                print("Embeddings added successfully.")
+            except Exception as e:
+                print(f"Error adding embeddings: {e}")
+        else:
+            print("Collection already exists. Embeddings will not be added.")        
 
     def get_text_by_ids(self, ids):
         return [self.text_chunks[id] for id in ids[0]]
-
-    def generate_response(self, user_message, similar_texts):
-        system_prompt = f'''
-        As helpful assistant on the first line of customer support you answer the questions of users on documents related to
-        bank card operations and payments.
-        Relevant information provided here {similar_texts}, user query provided here {user_message}
-
-        #Actions#
-        1. Carefully review user message.
-        2. Study relevant information.
-        3. Prepare extended answer to user on the basis of qu.
-
-        #Output:#
-        Response to user query
-        '''
-        messages = [
-            SystemMessage(system_prompt),
-            HumanMessage(user_message),
-        ]
-
-        response = self.llm.invoke(messages)
-        return response.content
 
     def pipe(
         self, user_message: str, model_id: str, messages: List[dict], body: dict
@@ -122,5 +112,4 @@ class Pipeline:
         query_embedding = self.model.encode([user_message])
         results = self.collection.query(query_embeddings=query_embedding.tolist(), n_results=5)
         similar_texts = self.get_text_by_ids(results['ids'])
-        response = self.generate_response(user_message, similar_texts)
-        return response
+        return ' '.join(similar_texts)
