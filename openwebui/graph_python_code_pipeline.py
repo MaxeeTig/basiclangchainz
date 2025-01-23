@@ -37,7 +37,7 @@ class QueryOutput(TypedDict):
 db_config = {
     'user': 'svbo',
     'password': 'svbopwd',
-    'host': 'localhost',
+    'host': 'mysql-engine',
     'database': 'botransactions'
 }
 
