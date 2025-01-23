@@ -22,7 +22,7 @@ class Pipeline:
         self.name = "Document RAG Search"
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         self.dim = 384
-        self.client = chromadb.Client(Settings(chroma_server_host= "localhost",
+        self.client = chromadb.Client(Settings(chroma_server_host= "chromadb-engine",
                                 chroma_server_http_port="8000"
                                 ))
         self.collection = None
