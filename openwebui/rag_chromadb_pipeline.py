@@ -4,13 +4,12 @@ author: Maxim Tigulev
 date: 23.01.2024
 version: 1.0
 license: MIT
-requirements: PyPDF2, sentence-transformers, numpy, chromadb
+requirements: PyPDF2, sentence-transformers, chromadb
 description: A pipeline for retrieving relevant information from a knowledge base using chromadb.
 """
 import os
 from PyPDF2 import PdfReader
 from sentence_transformers import SentenceTransformer
-import numpy as np
 import chromadb
 from chromadb.config import Settings
 from typing import List, Dict, Union, Generator, Iterator
