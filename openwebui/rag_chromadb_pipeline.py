@@ -1,36 +1,47 @@
+"""
+title: Chromadb RAG Pipeline
+author: Maxim Tigulev
+date: 23.01.2024
+version: 1.0
+license: MIT
+requirements: PyPDF2, sentence-transformers, numpy, chromadb
+description: A pipeline for retrieving relevant information from a knowledge base using chromadb.
+"""
 import os
 from PyPDF2 import PdfReader
 from sentence_transformers import SentenceTransformer
 import numpy as np
 import chromadb
 from chromadb.config import Settings
+from typing import List, Dict, Union, Generator, Iterator
 
 # Global debug mode variable
 debug_mode = True
 
-class RAGChromaDBApplication:
-    def __init__(self, pdf_path, model_name='all-MiniLM-L6-v2', dim=384):
-        self.pdf_path = pdf_path
-        self.model = SentenceTransformer(model_name)
-        self.dim = dim
+class Pipeline:
+    def __init__(self):
+        self.name = "Document RAG Search"
+        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.dim = 384
         self.client = chromadb.Client(Settings(chroma_server_host= "localhost",
                                 chroma_server_http_port="8000"
                                 ))
         self.collection = None
         self.text_chunks = {}
 
-    def initialize_index(self):
-        if not os.path.exists(self.pdf_path):
-            print(f"Error: File {self.pdf_path} does not exist.")
+    async def on_startup(self):
+        pdf_path = './data/vau_users_guide.pdf'
+        if not os.path.exists(pdf_path):
+            print(f"Error: File {pdf_path} does not exist.")
             return
 
         # Read and chunk the PDF
         if debug_mode:
-            print(f"Debug: reading file: {self.pdf_path}")
-        text_chunks = self.read_pdf(self.pdf_path)
+            print(f"Debug: reading file: {pdf_path}")
+        text_chunks = self.read_pdf(pdf_path)
 
         if debug_mode:
-            print(f"Debug: creating chunks: {self.pdf_path}")
+            print(f"Debug: creating chunks: {pdf_path}")
         chunked_texts = self.chunk_text(text_chunks)
 
         # Store text chunks with IDs
@@ -46,6 +57,9 @@ class RAGChromaDBApplication:
         # Store embeddings in ChromaDB
         self.store_embeddings(embeddings)
 
+    async def on_shutdown(self):
+        # This function is called when the server is stopped.
+        pass
 
     def read_pdf(self, pdf_path):
         with open(pdf_path, 'rb') as f:
@@ -78,19 +92,10 @@ class RAGChromaDBApplication:
     def get_text_by_ids(self, ids):
         return [self.text_chunks[id] for id in ids[0]]
 
-    def search_similar_docs(self, query, top_k=5):
-        query_embedding = self.model.encode([query])
-        results = self.collection.query(query_embeddings=query_embedding.tolist(), n_results=top_k)
+    def pipe(
+        self, user_message: str, model_id: str, messages: List[dict], body: dict
+    ) -> Union[str, Generator, Iterator]:
+        query_embedding = self.model.encode([user_message])
+        results = self.collection.query(query_embeddings=query_embedding.tolist(), n_results=5)
         similar_texts = self.get_text_by_ids(results['ids'])
-        print("Similar Texts:")
-        for text in similar_texts:
-            print(text)
-        return results
-
-if __name__ == "__main__":
-    pdf_path = './data/vau_users_guide.pdf'
-    app = RAGChromaDBApplication(pdf_path)
-    app.initialize_index()
-    query = "what is vau?"
-    results = app.search_similar_docs(query)
-    print(results)
+        return ' '.join(similar_texts)
