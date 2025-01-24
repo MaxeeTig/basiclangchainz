@@ -8,7 +8,6 @@ requirements: PyPDF2, sentence-transformers, chromadb, langchain_mistralai, lang
 description: A pipeline for retrieving relevant information from a knowledge base using chromadb.
 """
 import os
-from PyPDF2 import PdfReader
 from sentence_transformers import SentenceTransformer
 import chromadb
 from chromadb.config import Settings
@@ -32,64 +31,11 @@ class Pipeline:
         self.text_chunks = {}
 
     async def on_startup(self):
-        pdf_path = './data/vau_users_guide.pdf'
-        if not os.path.exists(pdf_path):
-            print(f"Error: File {pdf_path} does not exist.")
-            return
-
-        # Read and chunk the PDF
-        if debug_mode:
-            print(f"Debug: reading file: {pdf_path}")
-        text_chunks = self.read_pdf(pdf_path)
-
-        if debug_mode:
-            print(f"Debug: creating chunks: {pdf_path}")
-        chunked_texts = self.chunk_text(text_chunks)
-
-        # Store text chunks with IDs
-        self.text_chunks = {str(i): chunk for i, chunk in enumerate(chunked_texts)}
-
-        # Generate embeddings
-        if debug_mode:
-            print("Debug: generate embeddings.")
-        embeddings = self.generate_embeddings(chunked_texts)
-
-        if debug_mode:
-            print("Debug: storing embeddings.")
-        # Store embeddings in ChromaDB
-        self.store_embeddings(embeddings)
+        pass
 
     async def on_shutdown(self):
         # This function is called when the server is stopped.
         pass
-
-    def read_pdf(self, pdf_path):
-        with open(pdf_path, 'rb') as f:
-            reader = PdfReader(f)
-            text = ''
-            for page in reader.pages:
-                text += page.extract_text()
-        return text
-
-    def chunk_text(self, text, chunk_size=512, overlap=128):
-        chunks = []
-        for i in range(0, len(text), chunk_size - overlap):
-            chunks.append(text[i:i + chunk_size])
-        return chunks
-
-    def generate_embeddings(self, texts):
-        embeddings = self.model.encode(texts)
-        return embeddings
-
-    def store_embeddings(self, embeddings):
-        # Create a ChromaDB collection
-        self.collection = self.client.create_collection(name="pdf_embeddings")
-
-        # Generate unique IDs for each embedding
-        ids = [str(i) for i in range(len(embeddings))]
-
-        # Insert embeddings into the collection
-        self.collection.add(embeddings=embeddings.tolist(), ids=ids)
 
     def get_text_by_ids(self, ids):
         return [self.text_chunks[id] for id in ids[0]]
