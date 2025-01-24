@@ -4,7 +4,7 @@ author: Maxim Tigulev
 date: 23.01.2024
 version: 1.0
 license: MIT
-requirements: PyPDF2, sentence-transformers, chromadb, langchain_mistralai, langchain_core
+requirements: sentence-transformers, chromadb, langchain_mistralai, langchain_core
 description: A pipeline for retrieving relevant information from a knowledge base using chromadb.
 """
 import os
@@ -23,10 +23,8 @@ class Pipeline:
         self.name = "Document RAG Search V3"
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         self.llm = ChatMistralAI(model="mistral-large-latest")
-        self.dim = 384
         self.client = chromadb.HttpClient(host="chromadb-engine", port="8000")
-        self.collection = "documents_embeddings"
-        self.text_chunks = {}
+        self.collection = self.client.get_collection("documents_embeddings")
 
     async def on_startup(self):
         pass
@@ -36,7 +34,7 @@ class Pipeline:
         pass
 
     def get_text_by_ids(self, ids):
-        return [self.text_chunks[id] for id in ids[0]]
+        return [self.collection.get(ids=[id])[0] for id in ids[0]]
 
     def generate_response(self, user_message, similar_texts):
         system_prompt = f'''
@@ -63,8 +61,6 @@ class Pipeline:
     def pipe(
         self, user_message: str, model_id: str, messages: List[dict], body: dict
     ) -> Union[str, Generator, Iterator]:
-        if self.collection is None:
-            self.on_startup()
         query_embedding = self.model.encode([user_message])
         results = self.collection.query(query_embeddings=query_embedding.tolist(), n_results=5)
         similar_texts = self.get_text_by_ids(results['ids'])
