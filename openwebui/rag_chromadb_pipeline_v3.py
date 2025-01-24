@@ -61,6 +61,10 @@ class Pipeline:
     def pipe(
         self, user_message: str, model_id: str, messages: List[dict], body: dict
     ) -> Union[str, Generator, Iterator]:
+        if self.collection is None:
+            return "Error: Collection is not set."
+        if debug_mode:
+            print(f"Collection name: {self.collection.name}")
         query_embedding = self.model.encode([user_message])
         results = self.collection.query(query_embeddings=query_embedding.tolist(), n_results=5)
         similar_texts = self.get_text_by_ids(results['ids'])
