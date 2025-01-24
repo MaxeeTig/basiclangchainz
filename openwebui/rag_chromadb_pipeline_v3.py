@@ -34,7 +34,9 @@ class Pipeline:
         pass
 
     def get_text_by_ids(self, ids):
-        return [self.collection.get(ids=[id])[0] for id in ids[0]]
+        # Flatten the list of lists
+        flat_ids = [id for sublist in ids for id in sublist]
+        return [self.collection.get(ids=[id])[0] for id in flat_ids]
 
     def generate_response(self, user_message, similar_texts):
         system_prompt = f'''
@@ -65,8 +67,13 @@ class Pipeline:
             return "Error: Collection is not set."
         if debug_mode:
             print(f"Collection name: {self.collection.name}")
+
         query_embedding = self.model.encode([user_message])
         results = self.collection.query(query_embeddings=query_embedding.tolist(), n_results=5)
+
+        if debug_mode:
+            print(f"Query results: {results}")
+
         similar_texts = self.get_text_by_ids(results['ids'])
         response = self.generate_response(user_message, similar_texts)
         return response
