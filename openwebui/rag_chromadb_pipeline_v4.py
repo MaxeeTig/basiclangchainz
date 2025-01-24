@@ -14,6 +14,7 @@ from chromadb.config import Settings
 from typing import List, Dict, Union, Generator, Iterator
 from langchain_mistralai import ChatMistralAI
 from langchain_core.messages import HumanMessage, SystemMessage
+import json
 
 # Global debug mode variable
 debug_mode = True
@@ -33,10 +34,10 @@ class Pipeline:
         # This function is called when the server is stopped.
         pass
 
-    def get_text_by_ids(self, ids):
-        # Flatten the list of lists
-        flat_ids = [id for sublist in ids for id in sublist]
-        return [self.collection.get(ids=[id])[0] for id in flat_ids]
+    def get_text_by_ids(self, chunks_file_path, ids):
+        with open(chunks_file_path, 'r') as f:
+            chunks = json.load(f)
+        return [chunks[int(id)] for id in ids]
 
     def generate_response(self, user_message, similar_texts):
         system_prompt = f'''
@@ -74,6 +75,7 @@ class Pipeline:
         if debug_mode:
             print(f"Query results: {results}")
 
-        similar_texts = self.get_text_by_ids(results['ids'])
-        response = self.generate_response(user_message, similar_texts)
-        return response
+        relevant_ids = results['ids'][0]
+        relevant_texts = self.get_text_by_ids('./data/vau_users_guide_chunks.json', relevant_ids)
+        joined_text = ' '.join(relevant_texts)
+        return joined_text
