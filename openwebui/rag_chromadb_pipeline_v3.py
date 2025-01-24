@@ -24,10 +24,8 @@ class Pipeline:
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         self.llm = ChatMistralAI(model="mistral-large-latest")
         self.dim = 384
-        self.client = chromadb.Client(Settings(chroma_server_host= "chromadb-engine",
-                                chroma_server_http_port="8000"
-                                ))
-        self.collection = None
+        self.client = chromadb.HttpClient(host="chromadb-engine", port="8000")
+        self.collection = "documents_embeddings"
         self.text_chunks = {}
 
     async def on_startup(self):
