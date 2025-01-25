@@ -1,12 +1,3 @@
-"""
-title: Chromadb RAG Pipeline
-author: Maxim Tigulev
-date: 23.01.2024
-version: 1.0
-license: MIT
-requirements: PyPDF2, sentence-transformers, chromadb
-description: A pipeline for retrieving relevant information from a knowledge base using chromadb.
-"""
 import os
 from PyPDF2 import PdfReader
 from sentence_transformers import SentenceTransformer
@@ -22,10 +13,10 @@ class Pipeline:
         self.name = "Document RAG Search"
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         self.dim = 384
-        self.client = chromadb.Client(Settings(chroma_server_host= "chromadb-engine",
-                                chroma_server_http_port="8000"
-                                ))
+        self.client = chromadb.Client(Settings(chroma_server_host="chromadb-engine",
+                                               chroma_server_http_port="8000"))
         self.collection = None
+        self.collection_exists = False
         self.text_chunks = {}
         self.collection_name = "pdf_embeddings"
 
@@ -52,6 +43,9 @@ class Pipeline:
             print("Debug: generate embeddings.")
         embeddings = self.generate_embeddings(chunked_texts)
 
+        # Get or create the collection
+        self.collection, self.collection_exists = self.get_or_create_collection(self.collection_name)
+
         if debug_mode:
             print("Debug: storing embeddings.")
         # Store embeddings in ChromaDB
@@ -61,17 +55,15 @@ class Pipeline:
         # This function is called when the server is stopped.
         pass
 
-
     def get_or_create_collection(self, name):
-            try:
-                collection = self.client.get_collection(name=name)
-                print(f"Collection '{name}' already exists.")
-                return collection, True
-            except Exception as e:
-                print(f"Collection '{name}' does not exist. Creating a new collection.")
-                collection = self.client.create_collection(name=name)
-                return collection, False
-        
+        try:
+            collection = self.client.get_collection(name=name)
+            print(f"Collection '{name}' already exists.")
+            return collection, True
+        except Exception as e:
+            print(f"Collection '{name}' does not exist. Creating a new collection.")
+            collection = self.client.create_collection(name=name)
+            return collection, False
 
     def read_pdf(self, pdf_path):
         with open(pdf_path, 'rb') as f:
@@ -91,9 +83,10 @@ class Pipeline:
         embeddings = self.model.encode(texts)
         return embeddings
 
-    
     def add_embeddings(self, embeddings):
-        ids = [str(i) for i in range(len(embeddings))]    
+        if debug_mode:
+            print("Debug: check collection name.")
+        ids = [str(i) for i in range(len(embeddings))]
         if not self.collection_exists:
             try:
                 self.collection.add(embeddings=embeddings.tolist(), ids=ids)
@@ -101,7 +94,7 @@ class Pipeline:
             except Exception as e:
                 print(f"Error adding embeddings: {e}")
         else:
-            print("Collection already exists. Embeddings will not be added.")        
+            print("Collection already exists. Embeddings will not be added.")
 
     def get_text_by_ids(self, ids):
         return [self.text_chunks[id] for id in ids[0]]
@@ -109,7 +102,13 @@ class Pipeline:
     def pipe(
         self, user_message: str, model_id: str, messages: List[dict], body: dict
     ) -> Union[str, Generator, Iterator]:
+
+        if self.collection is None:
+            print("Error: Collection is not initialized.")
+            return "Collection is not initialized."
+        
         query_embedding = self.model.encode([user_message])
         results = self.collection.query(query_embeddings=query_embedding.tolist(), n_results=5)
         similar_texts = self.get_text_by_ids(results['ids'])
         return ' '.join(similar_texts)
+
