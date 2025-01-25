@@ -1,8 +1,8 @@
 """
 title: Chromadb RAG Pipeline
 author: Maxim Tigulev
-date: 23.01.2024
-version: 1.0
+date: 25.01.2024
+version: 1.3
 license: MIT
 requirements: sentence-transformers, chromadb, langchain_mistralai, langchain_core
 description: A pipeline for retrieving relevant information from a knowledge base using chromadb.
@@ -10,7 +10,6 @@ description: A pipeline for retrieving relevant information from a knowledge bas
 import os
 from sentence_transformers import SentenceTransformer
 import chromadb
-from chromadb.config import Settings
 from typing import List, Dict, Union, Generator, Iterator
 from langchain_mistralai import ChatMistralAI
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -20,11 +19,12 @@ debug_mode = True
 
 class Pipeline:
     def __init__(self):
-        self.name = "Document RAG Search V3"
+        self.name = "Document RAG Search v1.3"
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         self.llm = ChatMistralAI(model="mistral-large-latest")
         self.client = chromadb.HttpClient(host="chromadb-engine", port="8000")
-        self.collection = self.client.get_collection("documents_embeddings")
+        self.collection_name = "pdf_embeddings"
+        self.collection = None
 
     async def on_startup(self):
         pass
@@ -63,17 +63,41 @@ class Pipeline:
     def pipe(
         self, user_message: str, model_id: str, messages: List[dict], body: dict
     ) -> Union[str, Generator, Iterator]:
-        if self.collection is None:
-            return "Error: Collection is not set."
         if debug_mode:
-            print(f"Collection name: {self.collection.name}")
+            print(f"Starting pipe function with user_message: {user_message}")
 
+        # Check if ChromaDB client is initiated
+        try:
+            if self.client.heartbeat():
+                print("Chromadb connection established")
+            else:
+                raise Exception("Chromadb connection failed")
+        except Exception as e:
+            print(f"Error: {e}")
+            return f"Error: {e}"
+
+        # Check if collection exists
+        try:
+            self.collection = self.client.get_collection(name=self.collection_name)
+            print(f"Collection {self.collection_name} exists")
+        except Exception as e:
+            print(f"Error: {e}")
+            return f"Error: {e}"
+
+        # Generate query embedding
         query_embedding = self.model.encode([user_message])
+
+        # Search user's query in ChromaDB vector database
         results = self.collection.query(query_embeddings=query_embedding.tolist(), n_results=5)
 
         if debug_mode:
             print(f"Query results: {results}")
 
-        similar_texts = self.get_text_by_ids(results['ids'])
-        response = self.generate_response(user_message, similar_texts)
-        return response
+        # Process results - get texts of chunks stored in 'documents' and concatenate them to single string
+        similar_texts = ' '.join(results['documents'][0])
+
+        if debug_mode:
+            print(f"Similar texts: {similar_texts}")
+
+        # Return the concatenated string
+        return similar_texts
