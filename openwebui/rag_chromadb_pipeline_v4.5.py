@@ -4,7 +4,7 @@ author: Maxim Tigulev
 date: 27.01.2024
 version: 1.45
 license: MIT
-requirements: sentence-transformers, chromadb, langchain_mistralai, langchain_core
+requirements: sentence-transformers, chromadb, langchain_mistralai=0.2.4, langchain_core==0.3.7
 description: A pipeline for RAG with chromadb, added LLM processing, added LLM query rewriter.
 """
 import os
@@ -13,11 +13,20 @@ import chromadb
 from typing import List, Dict, Union, Generator, Iterator
 from langchain_mistralai import ChatMistralAI
 from langchain_core.messages import HumanMessage, SystemMessage
+from typing_extensions import TypedDict, Annotated
+
 
 # Global debug mode variable
 debug_mode = True
 
 class Pipeline:
+
+    # Initiate structured output
+    class QueryOutput(TypedDict):
+        query_state: Annotated[str, ..., "Status of user's query after LLM rewrite: proceed, clarify"]
+        query_rewrite: Annotated[str, ..., "User's query rewritten by LLM"]
+
+
     def __init__(self):
         self.name = "Document RAG Search Bot v1.45"
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -117,6 +126,59 @@ class Pipeline:
         response = self.llm.invoke(messages)
         return response.content
 
+    def rewrite_query(self, user_message):
+        system_prompt = '''
+        #Role:#
+        You are helpfull assistant on the first line of RAG-augmented chat bot.
+        This chat bot is responsible foe answering the questions of BPC AG company analyst an developers 
+        on the documents of bank cars operations and policies of International Payments Schemes like Visa, MasterCard, American Express
+        and other.     
+        Sometimes user's questions are not well formulated and the information from user's query is insufficent to make request 
+        to RAG agent and collect all chunks required to full answer. You need to rewrite user's query to get more terms and keywords for 
+        RAG agent.    
+        #Actons:#
+        As helpfull assistant:
+        1. Carefully review user's query.
+        2. Define what user wants to know. 
+        3. Re-phrase user's query.
+        4. Create three different versions of user's query for RAG agent.
+        5. Create qualified decision on results of your analysis:
+            5.1. <proceed> - it means that user's query is clear and allowed to be pased to RAG agent
+            5.2  <repeat> - it means that user's query is unclear or too short for RAG agent
+        6. Prepare output.
+        #Output:#
+        1. You should prepare output in a for of QueryOutput(TypedDict): 
+            query_state: Annotated[str, ..., "Status of user's query after LLM rewrite: proceed, clarify"]
+            query_rewrite: Annotated[str, ..., "User's query rewritten by LLM"]
+        2. If user's query is clear and allowed to be passed to RAG agent:
+            2.1 query_state = 'proceed'
+            2.2 query_state = three versions of user's query rewritten
+        3. If user's query is unclear or too short for RAG agent
+            3.1 query_state = 'repeat'
+            3.2 query_state = polite request to user, like please clarify your request or provide more detailed information
+        #Examples#:
+        {'user':'What benefits gives to cardholder participation in visa account update service?', 'query_state': 'proceed', 
+        'query_rewrite': 'What advantages does a cardholder gain by participating in the Visa Account Updater service? 
+        How does enrolling in the Visa Account Updater service benefit cardholders? 
+        What are the benefits for cardholders who use the Visa Account Updater service?'}
+        {'user':'what is vau?', 'query_state': 'repeat', 'query_rewrite': 'Please clarify your request, or provide more detailed information'}
+        #DO NOT:#
+        1. Answer user's question. Just return rewritten questions variants and query_state 'proceed' or 'repeat'.
+        If user enters random symbols please return execuse statement and query_state 'repeat'.
+        #Example#:
+        {'user':'dfwtugeslgrsdgf', 'query_rewrite': 'Please clarify your request, or provide more detailed information', 'query_state': 'repeat'}
+        '''
+        messages = [
+            SystemMessage(system_prompt),
+            HumanMessage(user_message),
+        ]
+        structured_llm = self.llm.with_structured_output(self.QueryOutput)
+        response = structured_llm.invoke(messages)
+        return response
+
+        
+
+# main pipe function
     def pipe(
         self, user_message: str, model_id: str, messages: List[dict], body: dict
     ) -> Union[str, Generator, Iterator]:
@@ -140,6 +202,15 @@ class Pipeline:
         except Exception as e:
             print(f"Error: {e}")
             return f"Error: {e}"
+        
+         # Rewrite the query of user, create three variants
+        query_result = self.rewrite_query(user_message)
+
+        if query_result['query_state'] == 'proceed':
+            user_message = query_result['query_rewrite']
+        elif query_result['query_state'] == 'repeat':
+            return query_result['query_rewrite']
+
 
         # Generate query embedding
         query_embedding = self.model.encode([user_message])
