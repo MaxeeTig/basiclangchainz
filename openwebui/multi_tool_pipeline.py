@@ -9,7 +9,7 @@ description: A pipeline for using LLM to build graphs on the basis of database i
 """
 
 import base64
-
+from langchain.memory import ConversationBufferWindowMemory
 from typing_extensions import TypedDict, Annotated
 import pandas as pd
 from sqlalchemy import create_engine
@@ -46,6 +46,8 @@ model = ChatMistralAI(model="mistral-large-latest")
 
 #create variables to use across the tools
 df = pd.DataFrame()
+html_string =''
+
 #                   ~~~~~ SQL query tool ~~~~~~
 
 class QueryInput(BaseModel):
@@ -193,7 +195,8 @@ AVOID the following pitfalls:
             "table_info": db.get_table_info(),
             "input": user_input,
         })
-
+    global html_string
+    html_string = ''
     structured_llm = model.with_structured_output(QueryOutput)
 
     if debug_mode:
@@ -222,37 +225,121 @@ AVOID the following pitfalls:
 
     return {"query": "Failed to generate a valid query after multiple attempts."}
 
-# def pre_fetch_data(user_input: str) -> str:
-#     """
-#     A tool for fetching data from database
-#     """
-#     sql_query = '''
-#     SELECT oper_date, issuer_card_id, mcc, merchant_city, merchant_country, oper_amount_amount_value, oper_amount_currency, oper_type
-#     FROM operations
-#     WHERE is_reversal = 0
-#     AND oper_type IS NOT NULL
-#     AND mcc <> ''
-#     AND merchant_country REGEXP '^[0-9]+$'
-#     AND merchant_country <> '0'
-#     AND oper_amount_amount_value > 1.00
-#     AND oper_amount_amount_value < 1000000000.00
-#     '''
-#     if debug_mode:
-#         print(f"Debug: Pre-fetching data with user input: {user_input}")
-#         print("Debug: pre-fetching data to dataframe... ")
-#     # Fetch data from the database
-#     global df
-#     df = pd.read_sql(sql_query, engine)
-#     if debug_mode:
-#         print(f"Debug: Pre-fetched data: {df.head()}")
-#     return "successfully fetched data"
-
 
 #                   ~~~~~ python code for graphs tool ~~~~~~
 
+class PythonGraphInput(BaseModel):
+    """user's question and graph type to generate python code for making a matplotlib graph."""
+    user_input: str = Field(..., description="User's question for creating a graph.")
+    graph_type: str = Field(..., description="Type of graph to generate.(e.g., 'barchart', 'scatter', 'box plot', 'line chart, 'histogram', 'pie chart').")
 
+class PythonGraphOutput(TypedDict):
+    """Generated python code."""
+    query: Annotated[str, ..., "Syntactically valid Python code."]
 
+@tool("python_graph_code", args_schema=PythonGraphInput, return_direct=True)
+def python_graph_code(user_input,graph_type, max_attempts=3):
+    system_prompt = """
+    You are a Python code writing agent specialized in creating plots and graphs using library matplotlib.
+    Your task is to generate Python code that that creates a graph using data from Pandas dataframe based on user's request and provided graph type.
+    This is user request {input}. and this is the type of graph you need to create {graph_type}
+    The data is pre-fetched into a DataFrame named 'df'. You should use matplotlib to create the graph of needed type and save it into png.
+    Analyze provided sample data, drop from 'df' useless features, select appropriate features to draw a graph.
+    Do not create sample data dataframe, use for creating a graph initial 'df' to create from it cleaned dataframe like:
+    df_cleaned = df.drop(columns=['column1','column2']) where column1, column2, columnN are useless features.
+    Always do this in the end of your code:
+    ``` 
+    filename = 'graph.png'
+    plt.savefig(filename)
+    plt.close()
+    globals()['filename'] = filename
+    ```
 
+    ### Instructions:
+    1. **DataFrame**: Assume the data is already loaded into a Pandas DataFrame named 'df' and NEVER create a new df.
+    2. **Matplotlib**: Use Matplotlib to create the graph.
+    3. **Parameters**: Use the following parameters from the operations table to customize the graph:
+       - `features`: The columns to use as features for creating a graph.
+       - `graph_type`: The type of graph to create (e.g., 'barchart', 'scatter', 'box plot', 'line chart, 'histogram', 'pie chart').
+    4. **Output**: Generate the Python code as a string and return it.
+    5. **Code**: save created plot in `filename` variable
+
+    ### DataFrame Columns:
+    {columns}
+
+    ### Example:
+    Given the parameters:
+    - `features`: ['feature1', 'feature2']
+    - `graph_type`: 'scatter'
+
+    The generated code should look like this:
+    ```python
+    import matplotlib.pyplot as plt
+
+    # Assuming df is already defined and contains the data
+    features = df[['feature1', 'feature2']]
+
+    plt.figure(figsize=(10, 6))
+    plt.scatter(features['feature1'], features['feature2'], cmap='viridis')
+    plt.title('Customer Segmentation')
+    plt.xlabel('Feature 1') 
+    plt.ylabel('Feature 2')
+    filename = 'graph.png'
+    plt.savefig(filename)
+    plt.close()
+    globals()['filename'] = filename
+    ```
+
+    ### Task:
+    Generate the Python code based on the provided parameters.
+    """
+    code_prompt_template = ChatPromptTemplate([
+        ("system", system_prompt),
+        ("user", ""),
+    ])
+
+    prompt = code_prompt_template.invoke({
+        "columns": df.columns.tolist(),
+        "input": user_input,
+        "graph_type": graph_type,
+    })
+
+    structured_llm = model.with_structured_output(CodeOutput)
+    for attempt in range(max_attempts):
+        code_response = structured_llm.invoke(prompt)
+        code = code_response['query']
+        print(code)
+        try:
+            # Execute the generated Python code
+            exec(code, globals(), locals())
+
+            # Retrieve the 'filename' object from the local variables
+            filename = globals().get('filename', None)
+            print(filename)
+            if filename is None:
+                return "no graph has been generated"
+            else:
+                with open(filename, 'rb') as f:
+                    image_data = f.read()
+
+                # Convert the image data to a base64 string
+                image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+                # Remove the local file
+                os.remove(filename)
+                global html_string
+                html_string = f"\n\n```html\n<div><img src='data:image/png;base64,{image_base64}' alt='Graph'></div>\n```"
+
+                # Return the base64 string embedded in HTML
+                return f"Generated a cluster graph based on the user's query: {user_input}."
+
+        except Exception as e:
+            print(f"Exception occurred {e}")
+            prompt = (f"The generated query is invalid. Error: {e}. "
+                      f"Attempt {attempt + 1} of {max_attempts}. "
+                      f"Previous invalid query: {code}. "
+                      f"Please correct the query.")
+    return "Failed to generate a valid code for cluster graph after multiple attempts."
 #                   ~~~~~ Python code for clustering tool ~~~~~~
 
 
@@ -369,10 +456,10 @@ def graph_code(user_input, max_attempts=3):
 
                 # Remove the local file
                 os.remove(filename)
-                html_string = f"\n```html\n<div><img src='data:image/png;base64,{image_base64}' alt='Graph'></div>\n```"
+                html_string = f"\n\n```html\n<div><img src='data:image/png;base64,{image_base64}' alt='Graph'></div>\n```"
 
                 # Return the base64 string embedded in HTML
-                return f"Generated a cluster graph based on the user's query: {user_input}.\n" + html_string
+                return f"Generated a cluster graph based on the user's query: {user_input}."
 
         except Exception as e:
             print(f"Exception occurred {e}")
@@ -387,10 +474,11 @@ def graph_code(user_input, max_attempts=3):
 
 class Pipeline:
     def __init__(self):
-        self.name = "Cluster Code Assistant"
+        self.name = "MultiTool analysis assistant"
         self.model = model  # Ensure the model is accessible within the class
         self.db = db
         self.df = None
+        self.memory = ConversationBufferWindowMemory(memory_key="chat_history", return_messages=True)
 
     async def on_startup(self):
         if debug_mode:
@@ -411,11 +499,11 @@ class Pipeline:
                     print("Debug: Title Generation")
                 return "Cluster Code Assistant"
 
-            tools: Sequence[BaseTool] = [pre_fetch_data, graph_code]
+            tools: Sequence[BaseTool] = [pre_fetch_data, python_graph_code]
 
             prompt = ChatPromptTemplate.from_messages([
                 ("system", """
-            You are a helpful assistant that can be a useful assistant and prefetch data from dataframe and clusterize data +draw a graph with your tools.
+            You are a helpful assistant that can communicate with person in chat and use tools for prefetching data from database or drawing a graph.
             - Use the tools provided to perform specific tasks.
             - If the user's query is unclear, ask for clarification.
             - Always be polite and informative.
@@ -424,8 +512,10 @@ class Pipeline:
                 ("user", "{input}"),  # Placeholder for user input
                 MessagesPlaceholder("agent_scratchpad"),  # Placeholder for intermediate steps
             ])
+            global html_string
+            html_string = ''
             agent = create_tool_calling_agent(model, tools, prompt)
-            agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+            agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True, memory=self.memory)
             response = agent_executor.invoke({"input": user_message, "chat_history": messages})
             if not df.empty:
                 print("df passed to pipe successfully")
@@ -434,7 +524,7 @@ class Pipeline:
                 print("empty df")
             print("response from last question")
             print(response)
-            return response['output']
+            return response['output']+ html_string
         except Exception as e:
             print(f"An error occurred: {str(e)}")
             raise
