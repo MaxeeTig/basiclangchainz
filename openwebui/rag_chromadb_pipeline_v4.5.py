@@ -4,7 +4,7 @@ author: Maxim Tigulev
 date: 27.01.2024
 version: 1.45
 license: MIT
-requirements: sentence-transformers, chromadb, langchain_mistralai=0.2.4, langchain_core==0.3.7
+requirements: sentence-transformers, chromadb, langchain_mistralai, langchain_core==0.3.7
 description: A pipeline for RAG with chromadb, added LLM processing, added LLM query rewriter.
 """
 import os
