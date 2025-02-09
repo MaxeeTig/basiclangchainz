@@ -33,7 +33,7 @@ class Pipeline:
         collection_name: str = "default_collection"
 
     def __init__(self):
-        self.name = "Document RAG Search Bot v1.45"
+        self.name = "Document RAG Search Bot v1.46"
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         self.llm = ChatMistralAI(model="mistral-large-latest")
         self.client = chromadb.HttpClient(host="chromadb-engine", port="8000")
