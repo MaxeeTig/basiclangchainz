@@ -10,7 +10,7 @@ debug_mode = True
 
 class Pipeline:
     def __init__(self):
-        self.name = "Document RAG Search"
+        self.name = "Document RAG Search only"
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         self.dim = 384
         self.client = chromadb.Client(Settings(chroma_server_host="chromadb-engine",

@@ -1,11 +1,12 @@
 """
 title: Chromadb RAG Pipeline
 author: Maxim Tigulev
-date: 27.01.2024
-version: 1.45
+date: 09.02.2025
+version: 1.46
 license: MIT
-requirements: sentence-transformers, chromadb, langchain_mistralai, langchain_core==0.3.7
+requirements: sentence-transformers, chromadb, langchain_mistralai, langchain_core==0.3.7, pydantic==2.8.2
 description: A pipeline for RAG with chromadb, added LLM processing, added LLM query rewriter.
+history: 09.02.2025 added class Valves(BaseModel)
 """
 import os
 from sentence_transformers import SentenceTransformer
@@ -14,6 +15,8 @@ from typing import List, Dict, Union, Generator, Iterator
 from langchain_mistralai import ChatMistralAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from typing_extensions import TypedDict, Annotated
+from pydantic import BaseModel
+
 
 
 # Global debug mode variable
@@ -26,13 +29,16 @@ class Pipeline:
         query_state: Annotated[str, ..., "Status of user's query after LLM rewrite: proceed, clarify"]
         query_rewrite: Annotated[str, ..., "User's query rewritten by LLM"]
 
+    class Valves(BaseModel):
+        collection_name: str = "default_collection"
 
     def __init__(self):
         self.name = "Document RAG Search Bot v1.45"
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         self.llm = ChatMistralAI(model="mistral-large-latest")
         self.client = chromadb.HttpClient(host="chromadb-engine", port="8000")
-        self.collection_name = "pdf_embeddings"
+        #self.collection_name = "pdf_embeddings"
+        self.valves = self.Valves(collection_name="pdf_embeddings")  # Initialize with default or specific value
         self.collection = None
 
     async def on_startup(self):
@@ -197,8 +203,8 @@ class Pipeline:
 
         # Check if collection exists
         try:
-            self.collection = self.client.get_collection(name=self.collection_name)
-            print(f"Collection {self.collection_name} exists")
+            self.collection = self.client.get_collection(name=self.valves.collection_name)
+            print(f"Collection {self.valves.collection_name} exists")
         except Exception as e:
             print(f"Error: {e}")
             return f"Error: {e}"
